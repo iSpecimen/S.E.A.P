@@ -1,6 +1,6 @@
 
 from typing import Any
-from queue_class import * 
+from SimSys.Objects.queue_class import * 
 import pytest
 
 class DummyQueue(Queue):
