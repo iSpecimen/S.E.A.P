@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from SimSys.Objects.queue_class import Queue
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .plane import Plane # type: ignore[attr-defined]
+
+from SimSys.Objects.queue_class import Queue
 
 class HoldingPatternQueue(Queue):
     def __init__(self, base_altitude : float):

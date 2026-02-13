@@ -1,4 +1,6 @@
-from queue_class import Queue
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from queue_class import Queue
 
 class TakeOffQueue(Queue):
     def __init__(self):
