@@ -7,7 +7,7 @@ try:
     from SimSys.Objects.plane import Plane  # type: ignore[attr-defined]
 except Exception:  # pragma: no cover - used only when Plane is missing
     class Plane:  # type: ignore[no-redef]
-        pass
+        emergency : bool = False
 
 @pytest.fixture
 def hpq():
@@ -90,3 +90,23 @@ def test_fifo_order(hpq):
     assert hpq.pop() is p1
     assert hpq.pop() is p2
     assert hpq.pop() is p3
+
+def test_emergency_prioritised(hpq):
+    p1 = Plane()
+    p2 = Plane()
+    p3 = Plane()
+    p4 = Plane()
+
+    hpq.push(p1)
+    hpq.push(p2)
+    hpq.push(p3)
+    hpq.push(p4)
+
+    p3.emergency = True
+
+    hpq.tick_update()
+
+    assert hpq.pop() is p3
+    assert hpq.pop() is p1
+    assert hpq.pop() is p2
+    assert hpq.pop() is p4

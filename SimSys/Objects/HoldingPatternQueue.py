@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .plane import Plane # type: ignore[attr-defined]
 
-from SimSys.Objects.queue_class import Queue
+from SimSys.Objects.queue_class import Queue, QueueNode
 
 class HoldingPatternQueue(Queue):
     def __init__(self, base_altitude : float):
@@ -31,8 +31,26 @@ class HoldingPatternQueue(Queue):
         
         return super().pop()
     
+    def __addToTop(self, plane : Plane):
+        if self._head is not None:
+            toMove = self._head
+            newHead = QueueNode(plane, toMove, None)
+            toMove.prev = newHead
+            self._head = newHead
+        else:
+            self._head = QueueNode(plane, None, None)
+            self._tail = self._head
+
+        self.size += 1
+    
     def tick_update(self) -> None:
-        ...
+        next_item = self._head
+        while (next_item != None):
+            if next_item.val.emergency:
+                self.remove(next_item)
+                self.__addToTop(next_item.val)
+            next_item = next_item.next
+
     
     def get_json_dict(self) -> dict:
         return {"Not": "Implemented"}
