@@ -1,7 +1,13 @@
 import pytest
 
 from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
-from SimSys.Objects.queue_class import Plane
+
+# Plane is not implemented yet; provide a minimal stub for tests.
+try:
+    from SimSys.Objects.plane import Plane  # type: ignore[attr-defined]
+except Exception:  # pragma: no cover - used only when Plane is missing
+    class Plane:  # type: ignore[no-redef]
+        pass
 
 @pytest.fixture
 def hpq():

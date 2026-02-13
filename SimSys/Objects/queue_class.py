@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-class Plane:
-    def __init__(self):
-        pass
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .plane import Plane # type: ignore[attr-defined]
 
 class QueueNode:
     def __init__(self, val: Plane, next: QueueNode | None = None, prev: QueueNode | None = None) -> None:

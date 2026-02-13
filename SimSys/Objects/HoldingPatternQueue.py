@@ -1,4 +1,10 @@
-from SimSys.Objects.queue_class import Queue,Plane
+from __future__ import annotations
+
+from SimSys.Objects.queue_class import Queue
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .plane import Plane # type: ignore[attr-defined]
 
 class HoldingPatternQueue(Queue):
     def __init__(self, base_altitude : float):
@@ -8,7 +14,7 @@ class HoldingPatternQueue(Queue):
         self.curr_max_altitude : float = 0 #Default to 0 if empty
 
     #adding 1000ft of vertical separation
-    def push(self, plane: Plane) -> None:
+    def push(self, plane: Plane) -> None: 
         if self.size == 0:
             self.curr_max_altitude = self.base_altitude
         else:
