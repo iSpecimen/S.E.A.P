@@ -33,7 +33,7 @@ class Runway(ABC, Generic[Q]):
 
         #Let concrete methods extend and deal with the expected free time.
 
-    def unload(self):
+    def unload(self) -> None:
         self.occupier = None
         self.expected_free_time = 0
         self.free = True

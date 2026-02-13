@@ -22,7 +22,7 @@ class TakeOffRunway(Runway[TakeOffQueue]):
     def to_string(self) -> str:
         return "Not implemented"
     
-    def tick_update(self):
+    def tick_update(self) -> None:
         if self.free:
             self.load(TheTakeoffQueue)
         elif self.expected_free_time != 0:
