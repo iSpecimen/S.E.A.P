@@ -26,6 +26,9 @@ class TakeOffRunway(Runway[TakeOffQueue]):
         if self.free:
             self.load(TheTakeoffQueue)
         elif self.expected_free_time != 0 and self.occupier is not None:
+            if self.occupier.get_mins_left() < 10:
+                self.occupier.declare_emergency()
+                
             self.expected_free_time -= 1
             self.occupier.update_litres()
         else:

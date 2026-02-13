@@ -5,8 +5,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar, Generic
 if TYPE_CHECKING:
     from .plane import Plane # type: ignore[attr-defined]
-
-from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
+    
 from SimSys.Objects.queue_class import Queue
 
 Q = TypeVar("Q", bound=Queue)
