@@ -11,6 +11,7 @@ class QueueNode:
         self.val: Plane = val
         self.next: QueueNode | None = next
         self.prev: QueueNode | None = prev
+        self.emergency_handled : bool = False
 
 
 class Queue(ABC):

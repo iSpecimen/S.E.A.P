@@ -7,7 +7,10 @@ class TakeOffQueue(Queue):
         super().__init__()
 
     def tick_update(self) -> None:
-        ...
+        next_item = self._head
+        while (next_item != None):
+            next_item.val.update_litres()
+            next_item = next_item.next
     
     def get_json_dict(self) -> dict:
         return {"Not": "Implemented"}

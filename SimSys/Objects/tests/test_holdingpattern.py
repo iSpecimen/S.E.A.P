@@ -9,6 +9,12 @@ except Exception:  # pragma: no cover - used only when Plane is missing
     class Plane:  # type: ignore[no-redef]
         emergency : bool = False
 
+        def update_litres(self): 
+            ...
+
+        def get_mins_left(self) -> int:
+            return 100
+
 @pytest.fixture
 def hpq():
     # Pick a simple base altitude for predictable tests
@@ -91,7 +97,7 @@ def test_fifo_order(hpq):
     assert hpq.pop() is p2
     assert hpq.pop() is p3
 
-def test_emergency_prioritised(hpq):
+def test_one_emergency_prioritised(hpq):
     p1 = Plane()
     p2 = Plane()
     p3 = Plane()
@@ -109,4 +115,48 @@ def test_emergency_prioritised(hpq):
     assert hpq.pop() is p3
     assert hpq.pop() is p1
     assert hpq.pop() is p2
+    assert hpq.pop() is p4
+
+def test_two_emergency_prioritised(hpq):
+    p1 = Plane()
+    p2 = Plane()
+    p3 = Plane()
+    p4 = Plane()
+
+    hpq.push(p1)
+    hpq.push(p2)
+    hpq.push(p3)
+    hpq.push(p4)
+
+    p2.emergency = True
+    p3.emergency = True
+
+    hpq.tick_update()
+
+    assert hpq.pop() is p3
+    assert hpq.pop() is p2
+    assert hpq.pop() is p1
+    assert hpq.pop() is p4
+
+def test_two_emergency__at_head_prioritised(hpq):
+    p1 = Plane()
+    p2 = Plane()
+    p3 = Plane()
+    p4 = Plane()
+
+    hpq.push(p1)
+    hpq.push(p2)
+    hpq.push(p3)
+    hpq.push(p4)
+
+    p1.emergency = True
+    p2.emergency = True
+
+    hpq.tick_update()
+    hpq.tick_update()
+    hpq.tick_update()
+
+    assert hpq.pop() is p2
+    assert hpq.pop() is p1
+    assert hpq.pop() is p3
     assert hpq.pop() is p4

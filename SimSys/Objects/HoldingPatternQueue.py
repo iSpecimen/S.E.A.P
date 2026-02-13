@@ -46,10 +46,19 @@ class HoldingPatternQueue(Queue):
     def tick_update(self) -> None:
         next_item = self._head
         while (next_item != None):
-            if next_item.val.emergency:
+            nxt = next_item.next
+
+            next_item.val.update_litres()
+
+            if next_item.val.get_mins_left() < 10:
+                next_item.val.declare_emergency()
+
+            if next_item.val.emergency and not next_item.emergency_handled:
                 self.remove(next_item)
                 self.__addToTop(next_item.val)
-            next_item = next_item.next
+                next_item.emergency_handled = True
+
+            next_item = nxt
 
     
     def get_json_dict(self) -> dict:
