@@ -13,7 +13,12 @@ export default function StartPage() {
 
         <div className="logo-pill">
           <span className="logo-text">
-            SE<span className="logo-plane">✈</span>P
+            SE
+            <span className="a-container">
+              <div className="a-shape"></div>
+              <img src="/plane-4.png" className="plane-overlay" alt="plane" />
+            </span>
+            P
           </span>
           <span className="logo-sub">Airport Simulation</span>
         </div>
