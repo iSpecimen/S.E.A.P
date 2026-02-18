@@ -11,17 +11,6 @@
   position: relative;
 }
 
-/* soft light behind card */
-/* .start-bg::before {
-  content: '';
-  position: absolute;
-  width: 640px;
-  height: 640px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(190,208,225,0.8), transparent 70%);
-  pointer-events: none;
-} */
-
 /* ── Card ── */
 .start-card {
   position: relative;
@@ -113,14 +102,6 @@
   transform: translate(-50%, -50%);  
   filter: drop-shadow(0px 2px 1px rgba(0,0,0,0.3));
 }
-
-/* .logo-plane {
-  display: inline-block;
-  font-size: 22px;
-  color: #5c6e82;
-  transform: rotate(-12deg) translateY(-2px);
-  margin: 0 -1px;
-} */
 
 .logo-sub {
   font-family: 'Cabin';

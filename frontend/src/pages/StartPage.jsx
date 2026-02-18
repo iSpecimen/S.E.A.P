@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import planeLogo from '../assets/plane-4.png';
 
 import './StartPage.css';
 
@@ -16,7 +17,7 @@ export default function StartPage() {
             SE
             <span className="a-container">
               <div className="a-shape"></div>
-              <img src="/plane-4.png" className="plane-overlay" alt="plane" />
+              <img src={planeLogo} className="plane-overlay" alt="plane" />
             </span>
             P
           </span>
