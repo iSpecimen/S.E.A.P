@@ -5,6 +5,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 900px; /* Adjust: (Left Sidebar 300 + Right 300 + Center 300) */
+    overflow-x: hidden; /* Stops the horizontal bar */
 }
 .tabBar{
     background: #D5C39E;
@@ -34,15 +36,18 @@
     flex:1;
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    min-width: 380px; /* Enough to fit one 320px RunwayCard comfortably */
     gap: 8px;
+    overflow-y: auto; /* Allow the whole center to scroll vertically */
+    overflow-x: hidden;
 }
 
 .runwayGrid{
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: 1fr 1fr;
-    gap:8px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 10px;
     flex:1;
     overflow-y: auto;
 }

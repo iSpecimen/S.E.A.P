@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./MainPage.css";
+import RunwayCard from "../components/RunwayCard.jsx";
 
 // Declaring functional component const
 const MainPage = () => {
@@ -26,7 +27,11 @@ const MainPage = () => {
                 {/*Centre Card*/}
                 <main className= "centre">
                     <div className="runwayGrid">
-
+                        {/* mock up */}
+                        <RunwayCard runwayName="Runway 1" initialMode="Take-off" fuelLevel={100} hoverInfo="CALL-SIGN:124 ORIGIN: BKK" />
+                        <RunwayCard runwayName="Runway 2" initialMode="Mixed" />
+                        <RunwayCard runwayName="Runway 3" initialMode="Landing" />
+                        <RunwayCard runwayName="Runway 4" initialMode="Mixed" />
                     </div>
                     <div className="timeline">
 
