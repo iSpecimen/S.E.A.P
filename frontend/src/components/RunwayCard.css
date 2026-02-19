@@ -6,14 +6,14 @@
     font-family: 'Arial', sans-serif;
 }
 
-/* Wrapper for the card itself */
+/* Wrapper for the card */
 .runway-wrapper {
     display: flex;
     flex-direction: column;
     width: 320px;
 }
 
-/* 1. The Tab Styling */
+/* 1. The Tab */
 .runway-tab {
     /* Background color is set dynamically in JSX */
     color: white;
@@ -29,24 +29,19 @@
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
 }
 
-/* 2. The Main Card Styling */
+/* The Main Card */
 .runway-card {
-    /* Transparent white background */
     background: rgba(251, 251, 251, 0.857); 
-    /* The magic blur effect */
     backdrop-filter: blur(12px); 
     -webkit-backdrop-filter: blur(12px);
-    
-    /* Thinner, softer border using the dynamic color but transparent */
     border-width: 2px;
     border-style: solid;
-    
-    /* Border color is set dynamically in JSX */
-    border-radius: 0 12px 12px 12px; /* Top-left is sharp/square to meet the tab */
+    /* Border color is set in JSX */
+    border-radius: 0 12px 12px 12px; 
     padding: 16px;
     position: relative;
     z-index: 1;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds depth */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .card-content {
@@ -81,7 +76,7 @@
     color: #333;
 }
 
-/* 3. Controls Area (Dropdowns) */
+/* Controls Area (Dropdowns) */
 .runway-controls {
     display: flex;
     justify-content: space-between;
@@ -93,7 +88,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 48%; /* Make them take up almost half the space each */
+    width: 48%; 
 }
 
 .control-group label {
@@ -108,7 +103,6 @@
 .control-group select {
     width: 100%;
     padding: 6px 8px;
-    border: 1px solid #ccc;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
@@ -127,28 +121,27 @@
 .hover-info-box {
     position: absolute;
     top: 0;
-    left: 40%; /* Position it to the right of the card */
+    left: 40%;
     width: auto;
     min-width: 150px;
-    max-width: 300px; /* Prevents it from getting too wide */
-    white-space: normal; /* Allows text to wrap naturally */
-    word-wrap: break-word; /* Prevents long IDs from breaking the box */
+    max-width: 300px;
+    white-space: normal; 
+    word-wrap: break-word;
     background-color: white;
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 10;
-    /* Simple fade-in animation */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    transition-delay: 0.5s; /* Adjust this: 0.5s = half a second delay */
+    transition-delay: 0.5s; 
 
 }
 .runway-container:hover .hover-info-box {
     opacity: 1;
     visibility: visible;
-    transition-delay: 0.5s; /* Keeps delay when appearing */
+    transition-delay: 0.7s;
 }
 
 @keyframes fadeIn {
