@@ -10,7 +10,8 @@ class Logger:
         self.__runwaySchema : tuple = ("mode", "status", "planeid", "bearing", "number", "time_till_free") # for each runway
 
         self.__planes : np.array #This should be constant, and populated once the timetable is generated!
-    
+
+    #usage: get_state_logs_as_json(tick=x) OR get_sate_logs(lower_bound = x, upper_bound = x)
     def get_state_logs_as_json(tick : int | None = None, lower_bound : int | None = None, upper_bound : int | None = None) -> str:
         if (tick == None and (lower_bound == None or upper_bound == None)):
             raise ValueError("Invalid Arguments!")
