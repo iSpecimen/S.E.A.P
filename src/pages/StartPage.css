@@ -11,17 +11,6 @@
   position: relative;
 }
 
-/* soft light behind card */
-/* .start-bg::before {
-  content: '';
-  position: absolute;
-  width: 640px;
-  height: 640px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(190,208,225,0.8), transparent 70%);
-  pointer-events: none;
-} */
-
 /* ── Card ── */
 .start-card {
   position: relative;

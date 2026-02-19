@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import './StartPage.css';
+import planeLogo from '../assets/plane-4.png'
 
 export default function StartPage() {
   const [numRunways, setNumRunways] = useState(3);
@@ -16,7 +17,7 @@ export default function StartPage() {
             SE
             <span className="a-container">
               <div className="a-shape"></div>
-              <img src="/plane-4.png" className="plane-overlay" alt="plane" />
+              <img src={planeLogo} className="plane-overlay" alt="plane" />
             </span>
             P
           </span>
