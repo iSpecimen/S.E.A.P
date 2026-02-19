@@ -83,15 +83,16 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b5c2e;
+  color: #000000;
   border-bottom: 1.5px solid #d4a017;
 }
 
 .arrDepTable td {
+  font-family: "Courier Prime", "Courier New", monospace;
   padding: 8px 10px;
   color: #3d2e00;
   border-bottom: 1px solid #e8dfc5;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .arrDepTable tbody tr:hover {
