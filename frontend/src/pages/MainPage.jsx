@@ -1,9 +1,27 @@
 import React, { useState } from "react";
 import "./MainPage.css";
+
 import RunwayCard from "../components/RunwayCard.jsx";
+import TakeoffQueue from "../components/TakeoffQueue.jsx";
+import HoldingPattern from "../components/HoldingPattern.jsx";
+
 
 // Declaring functional component const
 const MainPage = () => {
+    // Mock data for the Take-off Queue
+    const [takeoffFlights, setTakeoffFlights] = useState([
+        { callsign: 'MX123', destination: 'LONDON', time: '12:45' },
+        { callsign: 'UA990', destination: 'NEW YORK', time: '13:10' },
+        { callsign: 'AF442', destination: 'PARIS', time: '13:25' },
+        { callsign: 'LH101', destination: 'BERLIN', time: '13:40' },
+    ]);
+
+    // Mock data for the Holding Pattern
+    const [holdingFlights, setHoldingFlights] = useState([
+        { callsign: 'CS261', origin: 'LISBON', time: '06:50' },
+        { callsign: 'QA332', origin: 'DOHA', time: '07:15' },
+    ]);
+    
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
     return (
@@ -15,15 +33,10 @@ const MainPage = () => {
             {/*Main Content*/}
             <div className= "mainBody">
                 {/*Left Side*/}
-                <section className= "leftSidebar">
-                    <div className="TakeoffQueue">
-                        
-                    </div>
-                    <div className="HoldingPattern">
-                        
-                    </div>
-
-                </section>
+                <div className= "leftSidebar">         
+                    <TakeoffQueue flights={takeoffFlights} />
+                    <HoldingPattern flights={holdingFlights} />
+                </div>
                 {/*Centre Card*/}
                 <main className= "centre">
                     <div className="runwayGrid">
