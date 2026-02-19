@@ -27,14 +27,11 @@
 }
 
 .leftSidebar {
-    width: 300px;
-    min-width: 250px;
-    display: flex;
+    width: 280px;
+    min-width: 220px;
+    display:flex;
     flex-direction: column;
-    gap: 15px; /* Adds space between the two tables */
-    padding: 10px;
-    height: 100%;
-    overflow-y: hidden; 
+    gap: 4px;
 }
 
 .centre{
@@ -67,6 +64,7 @@
 .rightSidebar{
     width: 300px;
     min-width: 220px;
+    min-height: 0;
     display:flex;
     flex-direction: column;
     gap: 4px;
@@ -130,35 +128,35 @@
 }
 
 .TakeoffQueue {
-  background: #f5f0e6;
   border-radius: 4px;
   flex: 1;
-  min-height: 60px;
-  border: 1px dashed #b0a890;
+  min-height: 0;        
+  display: flex;        
+  flex-direction: column; 
 }
 
 .HoldingPattern {
-  background: #f5f0e6;
   border-radius: 4px;
   flex: 1;
-  min-height: 60px;
-  border: 1px dashed #b0a890;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 .Cancellations {
-  background: #f5f0e6;
   border-radius: 4px;
   flex: 1;
-  min-height: 60px;
-  border: 1px dashed #b0a890;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 .Statistics {
-  background: #f5f0e6;
   border-radius: 4px;
   flex: 1;
-  min-height: 60px;
-  border: 1px dashed #b0a890;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 

@@ -7,6 +7,7 @@ import ArrivalsDepartures from "../components/ArrivalsDepartures";
 import RunwayCard from "../components/RunwayCard";
 import TakeoffQueue from "../components/TakeoffQueue";
 import HoldingPattern from "../components/HoldingPattern";
+import Statistics from "../components/Statistics";
 
 // Declaring functional component const
 const MainPage = () => {
@@ -68,7 +69,16 @@ const MainPage = () => {
 
                     </div>
                     <div className="Statistics">
-
+                        <div className="Statistics">
+                        <Statistics
+                            maxInTakeoff={38}
+                            maxInHolding={44}
+                            maxWaitTakeoff={40}
+                            maxWaitHolding={10}
+                            avgDelayTakeoff={null}
+                            avgDelayArrival={null}
+                        />
+                        </div>
                     </div>
                 </section>
 
