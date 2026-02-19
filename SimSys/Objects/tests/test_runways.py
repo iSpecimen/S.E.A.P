@@ -12,20 +12,24 @@ from SimSys.Objects.TakeOffQueue import TakeOffQueue
 from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
 
 
-class DummyPlane:
-    def __init__(self, mins_left: int = 999, ground_speed: float = 200.0):
-        self._mins_left = mins_left
-        self.ground_speed = ground_speed
-        self.emergency_declared = False
+# Plane is not implemented yet; provide a minimal stub for tests.
+try:
+    from SimSys.Objects.plane import Plane  # type: ignore[attr-defined]
+except Exception:  # pragma: no cover - used only when Plane is missing
+    class Plane:
+        def __init__(self, mins_left: int = 999, ground_speed: float = 200.0):
+            self._mins_left = mins_left
+            self.ground_speed = ground_speed
+            self.emergency_declared = False
 
-    def get_mins_left(self) -> int:
-        return self._mins_left
+        def get_mins_left(self) -> int:
+            return self._mins_left
 
-    def declare_emergency(self) -> None:
-        self.emergency_declared = True
+        def declare_emergency(self) -> None:
+            self.emergency_declared = True
 
-    def update_litres(self) -> None:
-        ...
+        def update_litres(self) -> None:
+            ...
 
 # Fixtures (need to use monkeypatch to set global variables)
 
@@ -61,7 +65,7 @@ def test_load_raises_when_not_free(takeoff_runway: TakeOffRunway, takeoff_q: Tak
 
 def test_unload_resets_state(takeoff_runway: TakeOffRunway):
     takeoff_runway.free = False
-    takeoff_runway.occupier = DummyPlane()
+    takeoff_runway.occupier = Plane()
     takeoff_runway.expected_free_time = 12
     takeoff_runway.status = "Runway in use"
 
@@ -73,7 +77,7 @@ def test_unload_resets_state(takeoff_runway: TakeOffRunway):
     assert takeoff_runway.status == "Available"
 
 def test_takeoff_tick_update_loads_when_free(takeoff_runway: TakeOffRunway, takeoff_q: TakeOffQueue):
-    p = DummyPlane(mins_left=50, ground_speed=250.0)
+    p = Plane(mins_left=50, ground_speed=250.0)
     takeoff_q.push(p)
 
     assert takeoff_runway.free is True
@@ -85,7 +89,7 @@ def test_takeoff_tick_update_loads_when_free(takeoff_runway: TakeOffRunway, take
     assert takeoff_runway.expected_free_time > 0
 
 def test_takeoff_tick_update_decrements_and_updates_plane(takeoff_runway: TakeOffRunway, takeoff_q: TakeOffQueue):
-    p = DummyPlane(mins_left=50, ground_speed=200.0)
+    p = Plane(mins_left=50, ground_speed=200.0)
     takeoff_q.push(p)
 
     takeoff_runway.tick_update()  
@@ -96,7 +100,7 @@ def test_takeoff_tick_update_decrements_and_updates_plane(takeoff_runway: TakeOf
     assert takeoff_runway.expected_free_time == start - 1
 
 def test_takeoff_declares_emergency_when_under_10_mins(takeoff_runway: TakeOffRunway, takeoff_q: TakeOffQueue):
-    p = DummyPlane(mins_left=9, ground_speed=200.0)
+    p = Plane(mins_left=9, ground_speed=200.0)
     takeoff_q.push(p)
 
     takeoff_runway.tick_update() 
@@ -105,7 +109,7 @@ def test_takeoff_declares_emergency_when_under_10_mins(takeoff_runway: TakeOffRu
     assert p.emergency_declared is True
 
 def test_takeoff_unloads_when_expected_free_time_reaches_zero(takeoff_runway: TakeOffRunway, takeoff_q: TakeOffQueue):
-    p = DummyPlane(mins_left=50, ground_speed=200.0)
+    p = Plane(mins_left=50, ground_speed=200.0)
     takeoff_q.push(p)
 
     takeoff_runway.tick_update() 
@@ -117,7 +121,7 @@ def test_takeoff_unloads_when_expected_free_time_reaches_zero(takeoff_runway: Ta
     assert takeoff_runway.status == "Available"
 
 def test_landing_tick_update_loads_when_free(landing_runway: LandingRunway, landing_q: HoldingPatternQueue):
-    p = DummyPlane(mins_left=50, ground_speed=250.0)
+    p = Plane(mins_left=50, ground_speed=250.0)
     landing_q.push(p)
 
     assert landing_runway.free is True
@@ -129,7 +133,7 @@ def test_landing_tick_update_loads_when_free(landing_runway: LandingRunway, land
     assert landing_runway.expected_free_time > 0
 
 def test_landing_emergency_low_fuel(landing_runway: LandingRunway, landing_q: HoldingPatternQueue):
-    p = DummyPlane(mins_left=5, ground_speed=200.0)
+    p = Plane(mins_left=5, ground_speed=200.0)
     landing_q.push(p)
 
     landing_runway.tick_update()
@@ -138,12 +142,12 @@ def test_landing_emergency_low_fuel(landing_runway: LandingRunway, landing_q: Ho
     assert p.emergency_declared is True
 
 def test_mixed_follows_ratio(mixed_runway: MixedRunway, landing_q: HoldingPatternQueue, takeoff_q: TakeOffQueue):
-    landing_plane = DummyPlane()
+    landing_plane = Plane()
     landing_q.push(landing_plane)
 
-    p1 = DummyPlane(ground_speed=300.0)
-    p2 = DummyPlane(ground_speed=300.0)
-    p3 = DummyPlane(ground_speed=300.0)
+    p1 = Plane(ground_speed=300.0)
+    p2 = Plane(ground_speed=300.0)
+    p3 = Plane(ground_speed=300.0)
     takeoff_q.push(p1)
     takeoff_q.push(p2)
     takeoff_q.push(p3)
@@ -153,10 +157,10 @@ def test_mixed_follows_ratio(mixed_runway: MixedRunway, landing_q: HoldingPatter
 
 def test_mixed_tick_update(mixed_runway: MixedRunway, landing_q: HoldingPatternQueue, takeoff_q: TakeOffQueue):
     # Make takeoff dominate so it should pick takeoff on tick_update()
-    landing_q.push(DummyPlane())
-    takeoff_q.push(DummyPlane())
-    takeoff_q.push(DummyPlane())
-    takeoff_q.push(DummyPlane())
+    landing_q.push(Plane())
+    takeoff_q.push(Plane())
+    takeoff_q.push(Plane())
+    takeoff_q.push(Plane())
 
     assert mixed_runway.free is True
     mixed_runway.tick_update()
