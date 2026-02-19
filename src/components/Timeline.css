@@ -164,7 +164,6 @@
 .timelineBtnPlay {
   display: flex;
   align-items: center;
-  margin-left: 400px;
   justify-content: center;
   width: 3rem;
   height: 3rem;
