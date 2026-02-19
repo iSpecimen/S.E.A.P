@@ -1,0 +1,64 @@
+.flight-table-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #D3D3D3;
+  border: 1px solid #999;
+  border-radius: 4px;
+  max-height: 45vh; /* Takes up roughly half the sidebar height */
+  margin-bottom: 8px;
+}
+
+.flight-table-header {
+  background-color: #DA821C; 
+  font-family: 'Cairo';
+  color: white;
+  text-align: center;
+  padding: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.table-wrapper {
+  flex: 1; /* Fills the rest of the container below the header */
+  overflow-y: auto; /* This enables the vertical scrollbar */
+  background-color: #F0F0F0;
+}
+
+/* Custom Scrollbar Styling (Optional, for that clean look) */
+.table-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #999; /* Match your header orange */
+  border-radius: 10px;
+}
+
+.flight-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Sticky Header: Keeps column titles visible while scrolling */
+.flight-data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #D3D3D3;
+  box-shadow: 0 1px 0 #999; /* Visual bottom border for sticky header */
+  /* FONT STYLES */
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  color: #444;
+  text-transform: uppercase;
+}
+
+/* Target the flight data (MX123, LONDON, etc.) */
+.flight-data-table tbody td {
+    font-family: "Courier"; /* Clean, readable font */
+    font-size: 14px;
+    color: #333;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #999;
+}

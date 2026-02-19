@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
+
+/* ---- Outer wrapper — fills the sidebar ---- */
+
+.arrDep {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 4px;
+  font-family: "Cairo", system-ui, sans-serif;
+}
+
+/* ---- Each section (Departures / Arrivals) ---- */
+
+.arrDepSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;                     /* Split height equally between both sections */
+  min-height: 0;               /* Scrollbar won't work without this */
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fdf6e3;
+  border: 2px solid #d4a017;
+}
+
+/* ---- Section header (the amber bar) ---- */
+
+.arrDepHeader {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: #d97706;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.arrDepTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* ---- Scrollable table wrapper ---- */
+
+.arrDepTableWrapper {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Scrollbar */
+.arrDepTableWrapper::-webkit-scrollbar {
+  width: 5px;
+}
+.arrDepTableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.arrDepTableWrapper::-webkit-scrollbar-thumb {
+  background-color: #d4a017;
+  border-radius: 10px;
+}
+
+/* ---- Table ---- */
+
+.arrDepTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  table-layout: fixed;         /* Forces columns to share width evenly */
+}
+
+.arrDepTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f5ecd0;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b5c2e;
+  border-bottom: 1.5px solid #d4a017;
+}
+
+.arrDepTable td {
+  padding: 8px 10px;
+  color: #3d2e00;
+  border-bottom: 1px solid #e8dfc5;
+  font-weight: 500;
+}
+
+.arrDepTable tbody tr:hover {
+  background-color: #fef3cd;
+}
+
+/* ---- Empty state ---- */
+
+.arrDepEmpty {
+  text-align: center;
+  font-style: italic;
+  color: #92702a;
+  padding: 20px 10px;
+}

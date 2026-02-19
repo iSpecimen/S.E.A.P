@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin');
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
+
+/* ── Background ── */
+.start-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(50% 50% at 50% 50%, #3D5A80 0%, #D9F1FF 100%);
+  position: relative;
+}
+
+/* soft light behind card */
+/* .start-bg::before {
+  content: '';
+  position: absolute;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(190,208,225,0.8), transparent 70%);
+  pointer-events: none;
+} */
+
+/* ── Card ── */
+.start-card {
+  position: relative;
+  width: 420px;
+  background: #67798e;
+  border-radius: 14px;
+  padding: 44px 52px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(61, 90, 128, 0.7);
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: glow 3.5s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow:
+      0 0 50px 14px rgba(160,185,210,0.25),
+      0 0 100px 36px rgba(160,185,210,0.1),
+      0 6px 24px rgba(0,0,0,0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 70px 22px rgba(160,185,210,0.4),
+      0 0 140px 50px rgba(160,185,210,0.18),
+      0 6px 24px rgba(0,0,0,0.3);
+  }
+}
+
+/* ── Logo ── */
+.logo-pill {
+  background: #F9FEFF;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 100px;
+  width: 220px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.logo-text {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 48px;
+  color: #333;
+  letter-spacing: 3px;
+  line-height: 1.2;
+  filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.3))
+}
+
+/* The box that holds the 'A' */
+.a-container {
+  position: relative;
+  width: 34px;        
+  height: 34px;
+  display: inline-block;
+}
+
+/* The Grey "Upside Down V" Vector */
+.a-shape {
+  width: 100%;
+  height: 100%;
+  background-color: #828282;
+  
+  /* This cuts the grey box into an upside-down V shape */
+  clip-path: polygon(
+    50% 0%,     /* Top point */
+    100% 100%,  /* Bottom right outside */
+    83% 100%,   /* Bottom right inside leg */
+    50% 30%,    /* Inner crotch of the V */
+    17% 100%,   /* Bottom left inside leg */
+    0% 100%     /* Bottom left outside */
+  );
+}
+
+/* The Blue Plane Image */
+.plane-overlay {
+  position: absolute;
+  width: 46px; 
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);  
+  filter: drop-shadow(0px 2px 1px rgba(0,0,0,0.3));
+}
+
+/* .logo-plane {
+  display: inline-block;
+  font-size: 22px;
+  color: #5c6e82;
+  transform: rotate(-12deg) translateY(-2px);
+  margin: 0 -1px;
+} */
+
+.logo-sub {
+  font-family: 'Cabin';
+  font-size: 14px;
+  font-style: normal;
+  color: #5c6e82;
+  margin-top: 1px;
+}
+
+/* ── Inputs ── */
+.inputs {
+  font-family: 'Cairo';
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-left: 24px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.field input {
+  width: 72px;
+  height: 30px;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  padding: 0 6px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #8a9db3;
+}
+
+.field label {
+  font-family: 'Cairo';
+  font-size: 15px;
+  color: #c8d2de;
+}
+
+/* ── Button ── */
+.start-btn {
+  font-family: 'Cairo';
+  font-style: 'bold';
+  background: #FF9720;
+  border: 1px solid #cc932f;
+  border-radius: 6px;
+  padding: 9px 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  filter: drop-shadow(0px 2px 1px rgba(0,0,0,0.3));
+}
+
+.start-btn:hover {
+  background: #f0b44a;
+}
