@@ -1,44 +1,9 @@
 from __future__ import annotations
 
+from SimSys.Objects.Plane import Plane
 from .HoldingPatternQueue import HoldingPatternQueue
 from .TakeOffQueue import TakeOffQueue
 from .runway_class import MixedRunway, LandingRunway, TakeOffRunway
-import random
-
-class Plane:
-    def __init__(self, callsign: str, is_arrival: bool, scheduled_time: int):
-        self.callsign: str = callsign
-        self.operator: str = "DummyAir"
-        self.origin: str = "SOMEWHERE" if is_arrival else "BHX"
-        self.destination: str = "BHX" if is_arrival else "SOMEWHERE"
-        
-        self.scheduled_time: int = scheduled_time
-        self.system_time: int = scheduled_time
-        
-        self.is_arrival: bool = is_arrival
-        self.altitude: float = 10000.0 if is_arrival else 0.0
-        
-        # Speed assigned between 166 and 333 ft/s to yield 30-60s runway times
-        self.ground_speed: float = random.uniform(166, 333) 
-        
-        # Fuel distributed uniformly between 20-60 mins (1200 - 3600 seconds)
-        self.fuel_seconds: int = random.randint(20 * 60, 60 * 60) if is_arrival else 100000
-        
-        self.delayed: bool = False
-        self.emergency: bool = False
-        self.emergency_handled: bool = False
-        
-        self.queue_join_time: int = 0
-        self.wait_duration: int = 0
-
-    def update_litres(self) -> None:
-        self.fuel_seconds -= 1
-
-    def get_mins_left(self) -> int:
-        return int(self.fuel_seconds / 60.0)
-
-    def declare_emergency(self) -> None:
-        self.emergency = True
 
 class Simulation:
     def __init__(self):
@@ -66,25 +31,28 @@ class Simulation:
         self.diverted_planes_num: int = 0
         
         # Timetable
-        self.schedule: dict[int, list[Plane]] = {i: [] for i in range(3601)}
+        self.schedule_arrivals: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
+        self.schedule_departures: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         self._generate_dummy_schedule()
 
     def _generate_dummy_schedule(self) -> None:
         # Generate roughly 15 arrivals and 15 departures for the hour to stress test
-        for i in range(0, 3600, 30):
-            self.schedule[i].append(Plane(f"ARR{i}", True, i))
-            self.schedule[i].append(Plane(f"DEP{i}", False, i))
+        for i in range(0, 3600 * 24, 30):
+            plane = Plane(f"ARR{i}", True, i)
+            self.schedule_arrivals[plane.mock_values()].append(plane)
+            plane = Plane(f"DEP{i}", False, i)
+            self.schedule_departures[plane.mock_values()].append(plane)
             
             # Injecting a low-fuel emergency plane for proof of concept
             if i == 1800:
                 emergency_plane = Plane(f"ARR_EMG", True, i)
                 emergency_plane.fuel_seconds = 800  # Will trigger emergency/diversion rapidly
-                self.schedule[i].append(emergency_plane)
+                self.schedule_departures[i].append(emergency_plane)
 
     def run(self) -> None:
-        print("=== STARTING 1-HOUR SIMULATION (BHX) ===\n")
+        print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
-        for t in range(3601):
+        for t in range(60 * 60 * 24):
             for p in self.schedule[t]:
                 p.queue_join_time = t
                 if p.is_arrival:
