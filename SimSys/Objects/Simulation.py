@@ -3,7 +3,9 @@ from __future__ import annotations
 from SimSys.Objects.Plane import Plane
 from .HoldingPatternQueue import HoldingPatternQueue
 from .TakeOffQueue import TakeOffQueue
-from .runway_class import MixedRunway, LandingRunway, TakeOffRunway
+from .TakeOffRunway import TakeOffRunway
+from .MixedRunway import MixedRunway
+from .TakeOffRunway import TakeOffRunway
 
 class Simulation:
     def __init__(self):
