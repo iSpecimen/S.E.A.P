@@ -52,7 +52,7 @@ class HoldingPatternQueue(Queue):
             plane.update_litres()
 
             if plane.get_mins_left() < 10:
-                #print(f"[{curr_time}s] DIVERSION: {plane.callsign} popped and diverted. Fuel critically low (<10 mins)!")
+                print(f"[{curr_time}s] DIVERSION: {plane.callsign} popped and diverted. Fuel critically low (<10 mins)!")
                 sim.diverted_planes_num += 1
                 self.remove(next_item)
                 
@@ -61,7 +61,7 @@ class HoldingPatternQueue(Queue):
                     plane.declare_emergency()
 
                 if plane._emergency and not plane._emergency_handled:
-                    #print(f"[{curr_time}s] EMERGENCY: {plane.callsign} declaring fuel emergency (<20 mins). Bumping to top of hold.")
+                    print(f"[{curr_time}s] EMERGENCY: {plane.callsign} declaring fuel emergency (<20 mins). Bumping to top of hold.")
                     self.remove(next_item)
                     self.__addToTop(plane)
                     plane._emergency_handled = True
