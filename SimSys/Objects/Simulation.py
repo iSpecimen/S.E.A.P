@@ -5,14 +5,16 @@ from .HoldingPatternQueue import HoldingPatternQueue
 from .TakeOffQueue import TakeOffQueue
 from .TakeOffRunway import TakeOffRunway
 from .MixedRunway import MixedRunway
-from .TakeOffRunway import TakeOffRunway
+from .LandingRunway import LandingRunway
+
+from .Logger import Logger
 
 class Simulation:
     def __init__(self):
         # Components
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
-        self.runways = [MixedRunway(1, 90, self.tqueue, self.hqueue)] # can add more runways for test
+        self.runways = [TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue)] # can add more runways for test
         
         self.max_tqueue_size: int = 0
         self.max_hqueue_size: int = 0
@@ -31,6 +33,10 @@ class Simulation:
         
         self.cancelled_planes_num: int = 0
         self.diverted_planes_num: int = 0
+
+        self._logger : Logger
+
+        self._allPlanes : list[Plane] = []
         
         # Timetable
         self.schedule_arrivals: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
@@ -42,16 +48,20 @@ class Simulation:
         for i in range(0, 3600 * 24, 30):
             plane = Plane(f"ARR{i}", True, i)
             self.schedule_arrivals[plane.mock_values()].append(plane)
+            self._allPlanes.append(plane)
             plane = Plane(f"DEP{i}", False, i)
             self.schedule_departures[plane.mock_values()].append(plane)
+            self._allPlanes.append(plane)
             
             # Injecting a low-fuel emergency plane for proof of concept
             if i == 1800:
                 emergency_plane = Plane(f"ARR_EMG", True, i)
                 emergency_plane.fuel_seconds = 800  # Will trigger emergency/diversion rapidly
                 self.schedule_departures[i].append(emergency_plane)
+                self._allPlanes.append(emergency_plane)
 
     def run(self) -> None:
+        self._logger = Logger()
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):
@@ -59,8 +69,19 @@ class Simulation:
                 p.queue_join_time = t
                 if p._is_arrival:
                     self.hqueue.push(p)
+                    self.hqueue_processed += 1
                 else:
                     self.tqueue.push(p)
+                    self.tqueue_processed += 1
+
+            for p in self.schedule_departures[t]:
+                p.queue_join_time = t
+                if p._is_arrival:
+                    self.hqueue.push(p)
+                    self.hqueue_processed += 1
+                else:
+                    self.tqueue.push(p)
+                    self.tqueue_processed += 1
             
             self.max_tqueue_size = max(self.max_tqueue_size, self.tqueue.size)
             self.max_hqueue_size = max(self.max_hqueue_size, self.hqueue.size)
@@ -70,6 +91,8 @@ class Simulation:
             
             for r in self.runways:
                 r.tick_update(t, self)
+
+            self._logger.add_state_log(t, self.hqueue, self.tqueue, self.runways)
                 
         self.print_statistics()
 

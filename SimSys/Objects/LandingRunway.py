@@ -3,6 +3,10 @@ from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
 
 from math import ceil
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .Simulation import Simulation
+
 class LandingRunway(Runway[HoldingPatternQueue]):
     def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue):
         super().__init__(number, bearing)
@@ -26,7 +30,7 @@ class LandingRunway(Runway[HoldingPatternQueue]):
     def to_string(self) -> str:
         return "Not implemented"
     
-    def tick_update(self) -> None:
+    def tick_update(self, curr_time: int, sim: "Simulation") -> None:
         if self.free:
             self.load(self.landingQueue)
         elif self.expected_free_time != 0 and self.occupier is not None:

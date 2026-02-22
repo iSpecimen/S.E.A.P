@@ -1,17 +1,19 @@
 import numpy as np
 from operator import attrgetter
 from typing import Any
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .HoldingPatternQueue import HoldingPatternQueue # type: ignore[attr-defined]
-    from .TakeOffQueue import TakeOffQueue # type: ignore[attr-defined]
-    from .runway_class import Runway # type: ignore[attr-defined]
+from .HoldingPatternQueue import HoldingPatternQueue
+from .TakeOffQueue import TakeOffQueue
+from .runway_class import Runway
+import json
+from pathlib import Path
+from .Plane import Plane
 
 class Logger:
     def __init__(self):
+        self._file = Path("state_log.jsonl").open("w", encoding="utf-8")
+
         #schemas
-        self.__plane_schema : tuple = ("callsign","operator","origin","destination", "schedule_time","altitude","fuel_seconds","ground_speed","delayed","emergency")
+        self.__plane_schema : tuple = ("callsign","operator","origin","destination", "_scheduled_time","_altitude","_fuel_seconds","_ground_speed","_delayed","_emergency")
         self.__HoldingQueue : tuple = ("base_altitude", "callsigns") #planeIDs will be in queue order
         self.__TakeoffQueue : tuple = ("callsigns",) #planeIDs will be in queue order
         self.__runways : tuple = ("runways",) #will just hold array of runways
@@ -22,40 +24,27 @@ class Logger:
             "mode", "status", "bearing", "number", "expected_free_time"
         )
 
-        self.__planes : np.array #This should be constant, and populated once the timetable is generated!
-
-        self.__state_logs: list[dict[str, Any]] = []
-
-    @staticmethod
-    def _queue_callsigns(q) -> list[str]:
-        return [p.callsign for p in q.getNodeAsList()]
+    def _queue_planes_as_dicts(self, q):
+        rows = [self.__plane_get(p) for p in q.getNodeAsList()]
+        return self.rows_to_dicts(self.__plane_schema, rows)
 
     @staticmethod
     def _runway_callsign(r) -> str:
         return "N/A" if r.occupier is None else r.occupier.callsign
 
+    @staticmethod
+    def rows_to_dicts(schema, rows):
+        return [dict(zip(schema, row)) for row in rows]
+
     #Note: differs from UML because creating many dictionaries at runtime is resource intensive
     def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway]):
-        seen = {}
-        for p in getattr(holding_pattern, "queue", []):
-            seen[p.callsign] = p
-        for p in getattr(takeoff_queue, "queue", []):
-            seen[p.callsign] = p
-        planes = list(seen.values())
-
-        plane_rows = [self.__plane_get(p) for p in planes]
-
         holding_values = [
             holding_pattern.base_altitude,
-            self._queue_callsigns(holding_pattern),
+            self._queue_planes_as_dicts(holding_pattern),
         ]
 
         takeoff_values = [
-            self._queue_callsigns(takeoff_queue),
-        ]
-
-        takeoff_values = [
-            self._queue_callsigns(takeoff_queue),
+            self._queue_planes_as_dicts(takeoff_queue),
         ]
 
         runway_rows = []
@@ -72,16 +61,17 @@ class Logger:
 
         payload = {
             "tick": tick,
-            "planes": {"schema": self.__plane_schema, "rows": plane_rows},
-            "HoldingQueue": {"schema": self.__HoldingQueue, "values": holding_values},
-            "TakeoffQueue": {"schema": self.__TakeoffQueue, "values": takeoff_values},
-            "runways": {
-                "schema": self.__runways,
-                "runways": {"schema": self.__runwaySchema, "rows": runway_rows},
-            },
+
+            "HoldingQueue": dict(zip(self.__HoldingQueue, holding_values)),
+
+            "TakeoffQueue": dict(zip(self.__TakeoffQueue, takeoff_values)),
+
+            "runways": self.rows_to_dicts(self.__runwaySchema, runway_rows),
         }
 
-        self.__state_logs.append(payload)
+        line = json.dumps(payload, separators=(",", ":"))
+        self._file.write(line + "\n")
+
 
     #usage: get_state_logs_as_json(tick=x) OR get_sate_logs(lower_bound = x, upper_bound = x)
     def get_state_logs_as_json(self, tick : int | None = None, lower_bound : int | None = None, upper_bound : int | None = None) -> str:
@@ -92,3 +82,4 @@ class Logger:
             raise NotImplementedError()
         else: #logs within given range
             raise NotImplementedError()
+
