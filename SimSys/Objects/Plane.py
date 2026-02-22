@@ -31,12 +31,15 @@ class Plane:
         """Populate plane data with dummy info, returns time the plane should depart/take-off"""
         self._scheduled_time = random.randint(0, 24 * 60 * 60)  # 24 hours
         self._system_time = int(random.gauss(self._scheduled_time, 5 * 60))  # 5 minute deviation
+        self._system_time = max(0, min(self._system_time, 24*60*60 - 1)) #clamping fix
         self._fuel_seconds = random.gauss(40 * 60, 20 * 60)  # 20 <-> 60 minutes of fuel left
+        self._fuel_seconds = max(0, min(self._fuel_seconds, 24*60*60 - 1)) #clamping fix
         self.operator: str = "DummyAir"
         self.origin = random.choice(
             ["LHR", "LGW", "MAN", "STN", "BHX", "GLA", "EDI", "LTN", "BFS", "BRS"]) if self._is_arrival else "SEAP"
         self.destination = "SEAP" if self._is_arrival else random.choice(
             ["LHR", "LGW", "MAN", "STN", "BHX", "GLA", "EDI", "LTN", "BFS", "BRS"])
+
         return self._system_time
 
     def update_litres(self) -> None:

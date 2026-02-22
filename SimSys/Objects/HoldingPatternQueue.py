@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .plane import Plane # type: ignore[attr-defined]
+    from .Simulation import Simulation
 
 from SimSys.Objects.queue_class import Queue, QueueNode
 
@@ -59,11 +60,11 @@ class HoldingPatternQueue(Queue):
                 if plane.get_mins_left() < 20:
                     plane.declare_emergency()
 
-                if plane.emergency and not plane.emergency_handled:
+                if plane._emergency and not plane._emergency_handled:
                     print(f"[{curr_time}s] EMERGENCY: {plane.callsign} declaring fuel emergency (<20 mins). Bumping to top of hold.")
                     self.remove(next_item)
                     self.__addToTop(plane)
-                    plane.emergency_handled = True
+                    plane._emergency_handled = True
 
             next_item = nxt
 

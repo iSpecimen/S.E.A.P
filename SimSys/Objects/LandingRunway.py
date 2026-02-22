@@ -3,12 +3,11 @@ from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
 
 from math import ceil
 
-TheLandingQueue = HoldingPatternQueue(2000) #placeholder for now
-
 class LandingRunway(Runway[HoldingPatternQueue]):
-    def __init__(self, number : int, bearing : int):
+    def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue):
         super().__init__(number, bearing)
         self.mode = "Landing"
+        self.landingQueue = landingQueue
 
     """
     Does not currently consider the distance from the holding pattern to the 
@@ -19,7 +18,7 @@ class LandingRunway(Runway[HoldingPatternQueue]):
         super().load(queue)
 
         if self.occupier != None: # if successfuly loaded a plane
-            self.expected_free_time = ceil(self._length / self.occupier.ground_speed)
+            self.expected_free_time = ceil(self._length / self.occupier._ground_speed)
 
     def get_json_dict(self) -> dict:
         return {"Not": "Implemented"}
@@ -29,7 +28,7 @@ class LandingRunway(Runway[HoldingPatternQueue]):
     
     def tick_update(self) -> None:
         if self.free:
-            self.load(TheLandingQueue)
+            self.load(self.landingQueue)
         elif self.expected_free_time != 0 and self.occupier is not None:
             if self.occupier.get_mins_left() < 10:
                 self.occupier.declare_emergency()

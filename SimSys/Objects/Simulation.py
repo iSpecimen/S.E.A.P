@@ -12,7 +12,7 @@ class Simulation:
         # Components
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
-        self.runways = [MixedRunway(1, 90)] # can add more runways for test
+        self.runways = [MixedRunway(1, 90, self.tqueue, self.hqueue)] # can add more runways for test
         
         self.max_tqueue_size: int = 0
         self.max_hqueue_size: int = 0
@@ -55,9 +55,9 @@ class Simulation:
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):
-            for p in self.schedule[t]:
+            for p in self.schedule_arrivals[t]:
                 p.queue_join_time = t
-                if p.is_arrival:
+                if p._is_arrival:
                     self.hqueue.push(p)
                 else:
                     self.tqueue.push(p)

@@ -3,12 +3,11 @@ from SimSys.Objects.TakeOffQueue import TakeOffQueue
 
 from math import ceil
 
-TheTakeoffQueue = TakeOffQueue() #placeholder for now
-
 class TakeOffRunway(Runway[TakeOffQueue]):
-    def __init__(self, number : int, bearing : int):
+    def __init__(self, number : int, bearing : int, takeOffQueue : TakeOffQueue):
         super().__init__(number, bearing)
         self.mode = "Takeoff"
+        self.takeOffQueue = takeOffQueue
 
     def load(self, queue: TakeOffQueue) -> None:
         super().load(queue)
@@ -24,7 +23,7 @@ class TakeOffRunway(Runway[TakeOffQueue]):
     
     def tick_update(self) -> None:
         if self.free:
-            self.load(TheTakeoffQueue)
+            self.load(self.takeOffQueue)
         elif self.expected_free_time != 0 and self.occupier is not None:
             if self.occupier.get_mins_left() < 10:
                 self.occupier.declare_emergency()
