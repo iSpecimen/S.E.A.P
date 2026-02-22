@@ -7,11 +7,11 @@ from .runway_class import Runway
 import json
 from pathlib import Path
 from .Plane import Plane
+from datetime import datetime
+import uuid
 
 class Logger:
     def __init__(self):
-        self._file = Path("state_log.jsonl").open("w", encoding="utf-8")
-
         #schemas
         self.__plane_schema : tuple = ("callsign","operator","origin","destination", "_scheduled_time","_altitude","_fuel_seconds","_ground_speed","_delayed","_emergency")
         self.__HoldingQueue : tuple = ("base_altitude", "callsigns") #planeIDs will be in queue order
@@ -23,6 +23,14 @@ class Logger:
         self.__runway_attr_get = attrgetter(
             "mode", "status", "bearing", "number", "expected_free_time"
         )
+
+        self.run_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        
+        self._file_path = log_dir / f"state_{self.run_id}.jsonl"
+        self._file = Path(self._file_path).open("w", encoding="utf-8")
 
     def _queue_planes_as_dicts(self, q):
         rows = [self.__plane_get(p) for p in q.getNodeAsList()]
@@ -82,4 +90,9 @@ class Logger:
             raise NotImplementedError()
         else: #logs within given range
             raise NotImplementedError()
+        
+    def clear_log_file(self) -> None:
+        if self._file_path.exists():
+            self._file.close()
+            self._file_path.unlink()
 

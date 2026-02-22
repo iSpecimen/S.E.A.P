@@ -125,6 +125,8 @@ class Simulation:
         print(f"Total Diversions:    {self.diverted_planes_num}")
         print("=================================================")
 
+        self._logger.clear_log_file()
+
 # Optional testing block so you can run this specific file directly
 if __name__ == "__main__":
     sim = Simulation()
