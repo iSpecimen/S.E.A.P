@@ -87,8 +87,8 @@ class Simulation:
             self.max_tqueue_size = max(self.max_tqueue_size, self.tqueue.size)
             self.max_hqueue_size = max(self.max_hqueue_size, self.hqueue.size)
             
-            self.hqueue.tick_update(t, self)
-            self.tqueue.tick_update(t, self)
+            self.hqueue.tick_update(t, self, self._logger)
+            self.tqueue.tick_update(t, self, self._logger)
             
             for r in self.runways:
                 r.tick_update(t, self)

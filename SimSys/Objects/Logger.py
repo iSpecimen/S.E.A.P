@@ -30,7 +30,9 @@ class Logger:
         log_dir.mkdir(exist_ok=True)
         
         self._file_path = log_dir / f"state_{self.run_id}.jsonl"
-        self._file = Path(self._file_path).open("w", encoding="utf-8")
+        self._file__path_event = log_dir / f"state_{self.run_id}.txt"
+        self._file_log = Path(self._file_path).open("w", encoding="utf-8")
+        self._file_event = Path(self._file__path_event).open("w", encoding="utf-8")
 
     def _queue_planes_as_dicts(self, q):
         rows = [self.__plane_get(p) for p in q.getNodeAsList()]
@@ -78,8 +80,14 @@ class Logger:
         }
 
         line = json.dumps(payload, separators=(",", ":"))
-        self._file.write(line + "\n")
+        self._file_log.write(line + "\n")
 
+    def add_event_log(self, tick: int, log: str) -> None:
+        hour: int = tick // 3600
+        minute: int = (tick % 3600) // 60
+        second: int = tick % 60
+
+        self._file_event.write(f"[{hour:02}:{minute:02}:{second:02}] {log}\n")
 
     #usage: get_state_logs_as_json(tick=x) OR get_sate_logs(lower_bound = x, upper_bound = x)
     def get_state_logs_as_json(self, tick : int | None = None, lower_bound : int | None = None, upper_bound : int | None = None) -> str:
@@ -93,6 +101,8 @@ class Logger:
         
     def clear_log_file(self) -> None:
         if self._file_path.exists():
-            self._file.close()
-            self._file_path.unlink()
-
+            #self._file_log.close()
+            #self._file_event.close()
+            #self._file_path.unlink()
+            #self._file__path_event.unlink()
+            ...
