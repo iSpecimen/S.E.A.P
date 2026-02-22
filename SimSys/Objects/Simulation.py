@@ -14,6 +14,7 @@ class Simulation:
         # Components
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
+        # self.runways = [MixedRunway(1,90,self.tqueue,self.hqueue)]
         self.runways = [TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue)] # can add more runways for test
         
         self.max_tqueue_size: int = 0

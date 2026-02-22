@@ -14,8 +14,8 @@ class Logger:
     def __init__(self):
         #schemas
         self.__plane_schema : tuple = ("callsign","operator","origin","destination", "_scheduled_time","_altitude","_fuel_seconds","_ground_speed","_delayed","_emergency")
-        self.__HoldingQueue : tuple = ("base_altitude", "callsigns") #planeIDs will be in queue order
-        self.__TakeoffQueue : tuple = ("callsigns",) #planeIDs will be in queue order
+        self.__HoldingQueue : tuple = ("base_altitude", "planes") #planeIDs will be in queue order
+        self.__TakeoffQueue : tuple = ("planes",) #planeIDs will be in queue order
         self.__runways : tuple = ("runways",) #will just hold array of runways
         self.__runwaySchema : tuple = ("mode", "status", "callsigns", "bearing", "number", "expected_free_time") # for each runway
 
