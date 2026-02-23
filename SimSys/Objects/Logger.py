@@ -34,6 +34,8 @@ class Logger:
         self._file_log = Path(self._file_path).open("w", encoding="utf-8")
         self._file_event = Path(self._file__path_event).open("w", encoding="utf-8")
 
+        self._log_index : np.array = np.zeros(24*60*60)
+
     def _queue_planes_as_dicts(self, q):
         rows = [self.__plane_get(p) for p in q.getNodeAsList()]
         return self.rows_to_dicts(self.__plane_schema, rows)
@@ -48,6 +50,8 @@ class Logger:
 
     #Note: differs from UML because creating many dictionaries at runtime is resource intensive
     def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway]):
+        self._log_index[tick] = self._file_log.tell()
+
         holding_values = [
             holding_pattern.base_altitude,
             self._queue_planes_as_dicts(holding_pattern),
@@ -101,8 +105,7 @@ class Logger:
         
     def clear_log_file(self) -> None:
         if self._file_path.exists():
-            #self._file_log.close()
-            #self._file_event.close()
-            #self._file_path.unlink()
-            #self._file__path_event.unlink()
-            ...
+            self._file_log.close()
+            self._file_event.close()
+            self._file_path.unlink()
+            self._file__path_event.unlink()
