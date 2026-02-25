@@ -10,8 +10,9 @@ from .LandingRunway import LandingRunway
 from .Logger import Logger
 
 class Simulation:
-    def __init__(self):
+    def __init__(self, sim_name: str):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
         # Components
+        self.sim_name = sim_name
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
         # self.runways = [MixedRunway(1,90,self.tqueue,self.hqueue)]
@@ -62,7 +63,7 @@ class Simulation:
                 self._allPlanes.append(emergency_plane)
 
     def run(self) -> None:
-        self._logger = Logger()
+        self._logger = Logger(self.sim_name)
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):

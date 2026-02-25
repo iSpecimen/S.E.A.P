@@ -1,4 +1,4 @@
-from SimSys.Objects.Simulation import Simulation
+from Objects import Simulation
 
 sim = Simulation()
 sim.run()
