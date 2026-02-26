@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import planeLogo from '../assets/plane-4.png';
+
+import './StartPage.css';
 
 import './StartPage.css';
 import planeLogo from '../assets/plane-4.png'
