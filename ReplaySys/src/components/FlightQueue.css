@@ -1,0 +1,75 @@
+.flight-data-table {
+  width: 100%; /* Forces the table to stretch to the container edges */
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures column widths stay consistent */
+}
+
+.flight-table-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background-color: #fdf6e3;
+  border: 2px solid #d4a017;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.flight-table-header {
+  background: #DA821C; 
+  font-family: 'Cairo', sans-serif;
+  font-style: 'bold';
+  color: white;
+  text-align: center;
+  padding: 10px 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 14px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  background: transparent;
+}
+
+.flight-data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f5ecd0;
+  font-family: 'Cairo', sans-serif;
+  font-size: 12px;
+  color: #000000;
+  text-transform: uppercase;
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.flight-data-table tbody td {
+  font-family: "Courier Prime", "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(218, 130, 28, 0.5); /* Semi-transparent orange */
+  border-radius: 2px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
