@@ -78,6 +78,15 @@ class Queue(ABC):
                 self.remove(curr)
             curr = nxt
 
+    def getNodeAsList(self) -> list[QueueNode]:
+        ls = []
+        curr = self._head
+        while curr is not None:
+            ls.append(curr.val)
+            curr = curr.next
+        
+        return ls
+
     @abstractmethod
     def tick_update(self) -> None:
         ...

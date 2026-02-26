@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .plane import Plane # type: ignore[attr-defined]
+    from .Logger import Logger # type: ignore[attr-defined]
+    from .Simulation import Simulation
 
 from SimSys.Objects.queue_class import Queue, QueueNode
 
@@ -43,20 +45,27 @@ class HoldingPatternQueue(Queue):
 
         self.size += 1
     
-    def tick_update(self) -> None:
+    def tick_update(self, curr_time: int, sim: Simulation, logger : Logger) -> None:
         next_item = self._head
-        while (next_item != None):
+        while next_item is not None:
             nxt = next_item.next
+            plane = next_item.val
+            plane.update_litres()
 
-            next_item.val.update_litres()
-
-            if next_item.val.get_mins_left() < 10:
-                next_item.val.declare_emergency()
-
-            if next_item.val.emergency and not next_item.emergency_handled:
+            if plane.get_mins_left() < 10:
+                logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} popped and diverted. Fuel critically low (<10 mins)!")
+                sim.diverted_planes_num += 1
                 self.remove(next_item)
-                self.__addToTop(next_item.val)
-                next_item.emergency_handled = True
+                
+            else:
+                if plane.get_mins_left() < 20:
+                    plane.declare_emergency()
+
+                if plane._emergency and not plane._emergency_handled:
+                    logger.add_event_log(curr_time, f"EMERGENCY: {plane.callsign} declaring fuel emergency (<20 mins). Bumping to top of hold.")
+                    self.remove(next_item)
+                    self.__addToTop(plane)
+                    plane._emergency_handled = True
 
             next_item = nxt
 

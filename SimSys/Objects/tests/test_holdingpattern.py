@@ -1,6 +1,7 @@
 import pytest
 
 from SimSys.Objects.HoldingPatternQueue import HoldingPatternQueue
+from SimSys.Objects.Simulation import Simulation
 
 # Plane is not implemented yet; provide a minimal stub for tests.
 try:
@@ -110,7 +111,9 @@ def test_one_emergency_prioritised(hpq):
 
     p3.emergency = True
 
-    hpq.tick_update()
+    dummySim : Simulation = Simulation()
+
+    hpq.tick_update(0, dummySim)
 
     assert hpq.pop() is p3
     assert hpq.pop() is p1
@@ -131,7 +134,9 @@ def test_two_emergency_prioritised(hpq):
     p2.emergency = True
     p3.emergency = True
 
-    hpq.tick_update()
+    dummySim : Simulation = Simulation()
+
+    hpq.tick_update(0, dummySim)
 
     assert hpq.pop() is p3
     assert hpq.pop() is p2
@@ -152,9 +157,11 @@ def test_two_emergency__at_head_prioritised(hpq):
     p1.emergency = True
     p2.emergency = True
 
-    hpq.tick_update()
-    hpq.tick_update()
-    hpq.tick_update()
+    dummySim : Simulation = Simulation()
+
+    hpq.tick_update(0, dummySim)
+    hpq.tick_update(0, dummySim)
+    hpq.tick_update(0, dummySim)
 
     assert hpq.pop() is p2
     assert hpq.pop() is p1
