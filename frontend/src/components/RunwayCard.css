@@ -1,47 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
 /* Container for the card and the hover box */
 .runway-container {
     position: relative;
     display: inline-block; /* Keeps the hover box relative to the card */
     margin: 20px;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Cairo', sans-serif;
 }
 
-/* Wrapper for the card */
+/* Wrapper for the card itself */
 .runway-wrapper {
     display: flex;
     flex-direction: column;
     width: 320px;
 }
 
-/* 1. The Tab */
+/* 1. The Tab Styling */
 .runway-tab {
     /* Background color is set dynamically in JSX */
     color: white;
-    padding: 8px 18px;
+    padding: 6px 16px;
     width: fit-content;
-    border-radius: 12px 12px 0 0;
+    border-radius: 8px 8px 0 0; /* Rounded top corners only */
     font-weight: bold;
-    font-size: 14px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    z-index: 2;
+    font-size: 16px;
+    margin-bottom: -4px; /* Slight overlap to make it look connected */
+    z-index: 2; /* Sits on top of the card border */
     position: relative;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    left: 0px;
 }
 
-/* The Main Card */
+/* 2. The Main Card Styling */
 .runway-card {
-    background: rgba(251, 251, 251, 0.857); 
-    backdrop-filter: blur(12px); 
-    -webkit-backdrop-filter: blur(12px);
-    border-width: 2px;
+    background-color: white;
+    border-width: 4px;
     border-style: solid;
-    /* Border color is set in JSX */
-    border-radius: 0 12px 12px 12px; 
+    /* Border color is set dynamically in JSX */
+    border-radius: 0 12px 12px 12px; /* Top-left is sharp/square to meet the tab */
     padding: 16px;
     position: relative;
     z-index: 1;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds depth */
 }
 
 .card-content {
@@ -76,7 +74,7 @@
     color: #333;
 }
 
-/* Controls Area (Dropdowns) */
+/* 3. Controls Area (Dropdowns) */
 .runway-controls {
     display: flex;
     justify-content: space-between;
@@ -88,7 +86,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 48%; 
+    width: 48%; /* Make them take up almost half the space each */
 }
 
 .control-group label {
@@ -103,9 +101,9 @@
 .control-group select {
     width: 100%;
     padding: 6px 8px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
     font-size: 14px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
@@ -121,27 +119,28 @@
 .hover-info-box {
     position: absolute;
     top: 0;
-    left: 40%;
+    left: 40%; /* Position it to the right of the card */
     width: auto;
     min-width: 150px;
-    max-width: 300px;
-    white-space: normal; 
-    word-wrap: break-word;
+    max-width: 300px; /* Prevents it from getting too wide */
+    white-space: normal; /* Allows text to wrap naturally */
+    word-wrap: break-word; /* Prevents long IDs from breaking the box */
     background-color: white;
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 10;
+    /* Simple fade-in animation */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    transition-delay: 0.5s; 
+    transition-delay: 0.5s; /* Adjust this: 0.5s = half a second delay */
 
 }
 .runway-container:hover .hover-info-box {
     opacity: 1;
     visibility: visible;
-    transition-delay: 0.7s;
+    transition-delay: 0.5s; /* Keeps delay when appearing */
 }
 
 @keyframes fadeIn {

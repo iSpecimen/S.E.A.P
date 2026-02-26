@@ -3,6 +3,9 @@ import planeLogo from '../assets/plane-4.png';
 
 import './StartPage.css';
 
+import './StartPage.css';
+import planeLogo from '../assets/plane-4.png'
+
 export default function StartPage() {
   const [numRunways, setNumRunways] = useState(3);
   const [inboundFlow, setInboundFlow] = useState(15);

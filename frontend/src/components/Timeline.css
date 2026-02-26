@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin');
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
 .timelineController {
   width: 100%;
   user-select: none;
   border-radius: 0.75rem; /* Length percentage to make it suitable for different browsers*/
   border: 1px solid #6DA4B5; 
-  background-color: #80C1D5; 
+  background-color:  rgba(255, 255, 255, 0.4); 
   padding: 1rem 1.25rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), /* Soft drop shadow for depth */
     0 4px 6px -4px rgba(0, 0, 0, 0.2); /* Second shadow because single shadow looks flat*/
@@ -23,15 +25,15 @@
 }
 
 .timelineCurrentTime {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+  font-family: "Cairo", SFMono-Regular, Menlo, Monaco, Consolas,
     monospace; /* Monospace font so the digits don't shift with width*/
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff; /* White stands out as an active time */
+  color: #120b0b; /* White stands out as an active time */
 }
 
 .timelineEndTime {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+  font-family: "Cairo", SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
   font-size: 0.9rem;
   color: #000000; /* Visually second place to current time*/
@@ -144,7 +146,7 @@
 }
 
 .timelineTick {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+  font-family: "Cairo", SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
   font-size: 13px;
   color: #000000; 
@@ -162,7 +164,6 @@
 .timelineBtnPlay {
   display: flex;
   align-items: center;
-  margin-left: 400px;
   justify-content: center;
   width: 3rem;
   height: 3rem;

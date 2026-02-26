@@ -87,9 +87,11 @@ const Timeline = ({ onTimeChange,
                     </span>
                 ))}
             </div>
-            <button className="timelineBtnPlay" onClick={handlePlayPause}>
-                {isPlaying ? <PauseIcon /> : <PlayIcon className="playIcon" />}
-            </button>
+            <div className="timelineControls">
+                <button className="timelineBtnPlay" onClick={handlePlayPause}>
+                    {isPlaying ? <PauseIcon /> : <PlayIcon className="playIcon" />}
+                </button>
+            </div>
         </div>
 
     );

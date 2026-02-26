@@ -1,64 +1,75 @@
+.flight-data-table {
+  width: 100%; /* Forces the table to stretch to the container edges */
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures column widths stay consistent */
+}
+
 .flight-table-container {
   display: flex;
   flex-direction: column;
-  background-color: #D3D3D3;
-  border: 1px solid #999;
-  border-radius: 4px;
-  max-height: 45vh; /* Takes up roughly half the sidebar height */
-  margin-bottom: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background-color: #fdf6e3;
+  border: 2px solid #d4a017;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .flight-table-header {
-  background-color: #DA821C; 
-  font-family: 'Cairo';
+  background: #DA821C; 
+  font-family: 'Cairo', sans-serif;
+  font-style: 'bold';
   color: white;
   text-align: center;
-  padding: 8px;
-  font-weight: bold;
+  padding: 10px 14px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  font-size: 14px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
 }
 
 .table-wrapper {
-  flex: 1; /* Fills the rest of the container below the header */
-  overflow-y: auto; /* This enables the vertical scrollbar */
-  background-color: #F0F0F0;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  background: transparent;
 }
 
-/* Custom Scrollbar Styling (Optional, for that clean look) */
-.table-wrapper::-webkit-scrollbar {
-  width: 6px;
-}
-.table-wrapper::-webkit-scrollbar-thumb {
-  background: #999; /* Match your header orange */
-  border-radius: 10px;
-}
-
-.flight-data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* Sticky Header: Keeps column titles visible while scrolling */
 .flight-data-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: #D3D3D3;
-  box-shadow: 0 1px 0 #999; /* Visual bottom border for sticky header */
-  /* FONT STYLES */
+  background-color: #f5ecd0;
   font-family: 'Cairo', sans-serif;
-  font-size: 13px;
-  color: #444;
+  font-size: 12px;
+  color: #000000;
   text-transform: uppercase;
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Target the flight data (MX123, LONDON, etc.) */
 .flight-data-table tbody td {
-    font-family: "Courier"; /* Clean, readable font */
-    font-size: 14px;
-    color: #333;
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #999;
+  font-family: "Courier Prime", "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  padding: 10px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(218, 130, 28, 0.5); /* Semi-transparent orange */
+  border-radius: 2px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
 }
