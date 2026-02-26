@@ -8,7 +8,8 @@ from datetime import datetime
 import uuid
 
 class Logger:
-    def __init__(self):
+    def __init__(self, sim_name: str):  # Added sim_name str for multi-sim handling, "1.0, 1.1, 2.0.. etc"
+        self.sim_name = sim_name
         #schemas
         self.__plane_schema : tuple = ("callsign","operator","origin","destination", "_scheduled_time","_altitude","_fuel_seconds","_ground_speed","_delayed","_emergency")
         self.__HoldingQueue : tuple = ("base_altitude", "planes") #planeIDs will be in queue order
@@ -19,9 +20,10 @@ class Logger:
         self.__plane_get = attrgetter(*self.__plane_schema)
         self.__runway_attr_get = attrgetter(
             "mode", "status", "bearing", "number", "expected_free_time"
-        )
-
-        self.run_id = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        )   
+        
+        # Added sim_name to be included run_id, easier to reference json file in SystemController
+        self.run_id = f"{self.sim_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
         
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)

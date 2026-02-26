@@ -10,13 +10,14 @@ from .LandingRunway import LandingRunway
 from .Logger import Logger
 
 class Simulation:
-    def __init__(self):
+    def __init__(self, sim_name: str, runway_config: tuple[int, int, int]):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
         # Components
+        self.sim_name = sim_name
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
         # self.runways = [MixedRunway(1,90,self.tqueue,self.hqueue)]
-        self.runways = [TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue)] # can add more runways for test
-        
+        self.runways = self.generate_runway_config(runway_config)
+        # self.default_runway_config = [TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),TakeOffRunway(1, 90, self.tqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue),LandingRunway(1,90,self.hqueue)] # can add more runways for test
         self.max_tqueue_size: int = 0
         self.max_hqueue_size: int = 0
         
@@ -61,8 +62,29 @@ class Simulation:
                 self.schedule_departures[i].append(emergency_plane)
                 self._allPlanes.append(emergency_plane)
 
+    def generate_runway_config(self, runway_config: tuple[int, int, int] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway]:
+        if runway_config == None: 
+            return self.default_runway_config
+        
+        takeoffs, mixed, landings = runway_config
+        newrunways: list[TakeOffRunway | MixedRunway | LandingRunway] = []
+
+        for r in range(0, (takeoffs+mixed+landings)):
+            if takeoffs > 0: 
+                newrunways.append(TakeOffRunway(1,90, self.tqueue))
+                takeoffs += -1
+            elif mixed > 0: 
+                newrunways.append(MixedRunway(1,90, self.tqueue, self.hqueue))
+                mixed += -1
+            elif landings > 0:
+                newrunways.append(LandingRunway(1,90, self.hqueue))
+                landings += -1
+        # print((takeoffs, mixed, landings)) # Should be 0,0,0
+        print(f"Number of Runways: {len(newrunways)}")
+        return newrunways
+    
     def run(self) -> None:
-        self._logger = Logger()
+        self._logger = Logger(self.sim_name)
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):
