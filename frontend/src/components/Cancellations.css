@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin');
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
+
+
+
+.cancellations {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;                /* Fill the parent .Cancellations wrapper */
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fdf6e3;
+  border: 2px solid #d4a017;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: "Cairo", system-ui, sans-serif;
+}
+
+
+
+.cancellationsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #d97706;
+  color: #fff;
+  user-select: none;
+  flex-shrink: 0;              /* Never let the header shrink */
+}
+
+.cancellationsHeaderIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.cancellationsTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+
+
+.cancellationsList {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;               /* Required for flex children to scroll properly */
+  list-style: none;
+  margin: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.cancellationsList::-webkit-scrollbar {
+  width: 5px;
+}
+.cancellationsList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cancellationsList::-webkit-scrollbar-thumb {
+  background-color: #d4a017;
+  border-radius: 10px;
+}
+
+.cancellationsEmpty {
+  font-size: 0.8rem;
+  color: #92702a;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+
+
+.cancellationsItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: #fff8e7;
+  border-left: 3px solid transparent;
+  transition: background-color 0.15s ease;
+}
+
+.cancellationsItem:hover {
+  background-color: #fef3cd;
+}
+
+/* Left-border colour based on which icon is present */
+.cancellationsItem:has(.cancellationIcon) {
+  border-left-color: #dc2626;
+}
+.cancellationsItem:has(.diversionIcon) {
+  border-left-color: #f59e0b;
+}
+
+
+
+.cancellationIcon,
+.diversionIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cancellationIcon {
+  color: #dc2626;
+}
+
+.diversionIcon {
+  color: #f59e0b;
+}
+
+
+
+.cancellationsMessage {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #3d2e00;
+  word-break: break-word;
+}
+
+
+
+.cancellationsFooter {
+  display: flex;
+  flex-shrink: 0;              /* Never let the footer disappear */
+  border-top: 2px solid #d97706;
+}
+
+.cancellationsCounter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  background-color: #d97706;
+}
+
+.cancellationsCounter:first-child {
+  border-right: 1px solid #0e0d0d;
+}
+
+.cancellationsCounterLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0e0d0d;
+}
+
+.cancellationsCounterValue {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.cancellationsCounterValueCancel {
+  color: #0e0d0d;
+}
+
+.cancellationsCounterValueDivert {
+  color: #0e0d0d;
+}
