@@ -154,7 +154,8 @@ class Logger:
         
     def clear_log_file(self) -> None:
         if self._file_path.exists():
-            self._file_log.close()
-            self._file_event.close()
-            self._file_path.unlink()
-            self._file__path_event.unlink()
+            #self._file_log.close()
+            #self._file_event.close()
+            #self._file_path.unlink()
+            #self._file__path_event.unlink()
+            ...

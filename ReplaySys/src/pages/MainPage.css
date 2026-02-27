@@ -1,0 +1,172 @@
+.mainPage {
+    font-family: "Segoe UI", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle, #b8d0eb 0%, #94a9c4 100%);;
+    height:100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.tabBar{
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-height: 0px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+}
+
+.mainBody{
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    padding: 4px;
+    overflow: hidden;
+    position: relative;
+
+}
+
+.leftSidebar {
+    width: 280px;
+    min-width: 220px;
+    display:flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.centre{
+    flex:1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 8px;
+}
+
+.runwayGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+}
+.timeline{
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 8px 16px;
+    min-height: 140px;
+    margin: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+}
+
+.rightSidebar{
+    width: 300px;
+    min-width: 220px;
+    min-height: 0;
+    display:flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.arrDepToggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: #d4a017;
+  color: #fff;
+  border: none;
+  padding: 12px 6px;
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: right 0.3s ease;
+}
+
+.arrDepToggle:hover {
+  background: #b8860b;
+}
+
+
+/* When sidebar is open, shift the button left */
+.arrDepSidebar.open ~ .arrDepToggle,
+.body:has(.arrDepSidebar.open) .arrDepToggle {
+  right: 180px;
+}
+
+/* Arrivals/Departures sliding panel */
+.arrDepSidebar {
+  position: absolute;
+  right: -290px;
+  top: 0;
+  bottom: 0;
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  background:#EBE0C6;
+  transition: right 0.3s ease;
+  z-index: 5;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.arrDepSidebar.open {
+  right: 0;
+}
+
+/* ── Placeholder styling (remove once real components are added) ── */
+.placeholder {
+  background: #f5f0e6;
+  border-radius: 4px;
+  flex: 1;
+  min-height: 60px;
+  border: 1px dashed #b0a890;
+}
+
+.TakeoffQueue {
+  border-radius: 4px;
+  flex: 1;
+  min-height: 0;        
+  display: flex;        
+  flex-direction: column; 
+}
+
+.HoldingPattern {
+  border-radius: 4px;
+  flex: 1;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Cancellations {
+  border-radius: 4px;
+  flex: 1;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Statistics {
+  border-radius: 4px;
+  flex: 1;
+  min-height: 0px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+.arrivalsDepartures {
+  
+  border-radius: 4px;
+  flex: 1;
+  min-height: 60px;
+  
+}

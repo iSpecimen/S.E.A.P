@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin');
+@import url('https://fonts.googleapis.com/css2?family=Cairo');
+
+
+:root {
+  --st-bg:             #2d0aac;
+  --st-surface:        #3855e1;
+  --st-surface-hover:  #f59e0b;
+  --st-border:         #2e3345;
+  --st-text:           #e2e4ea;
+  --st-text-muted:     #8b8fa3;
+
+  
+
+  --st-playing:        #22c55e;
+  --st-paused:         #f59e0b;
+  --st-danger:         #ef4444;
+
+  --st-radius:         8px;
+  --st-font:           "Cairo", "Segoe UI", system-ui, sans-serif;
+  --st-transition:     180ms ease;
+}
+
+/* ── Wrapper ── */
+.SimTabWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-family: var(--st-font);
+  color: var(--st-text);
+  background: var(--st-bg);
+  border-radius: var(--st-radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+}
+
+/* ═══ Tab Bar ═══ */
+.SimTabBar {
+  display: flex;
+  align-items: stretch;
+  background: var(--st-surface);
+  border-bottom: 1px solid var(--st-border);
+  min-height: 42px;
+}
+
+/* Scrollable tab strip */
+.SimTabScroll {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  flex: 1 1 0;
+  gap: 2px;
+  padding: 4px 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--st-border) transparent;
+  gap: 1px;
+}
+
+.SimTabScroll::-webkit-scrollbar {
+  height: 4px;
+}
+.SimTabScroll::-webkit-scrollbar-thumb {
+  background: var(--st-border);
+  border-radius: 2px;
+
+}
+
+/* ── Individual tab ── */
+.SimTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--st-radius) var(--st-radius) 0 0;
+  background: transparent;
+  color: var(--st-text-muted);
+  font-family: var(--st-font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--st-transition), color var(--st-transition);
+  position: relative;
+  padding: 6px 10px;
+  max-width: 180px;
+}
+
+.SimTab:hover {
+  background: var(--st-surface-hover);
+  color: var(--st-text);
+}
+
+/* Active tab */
+.SimTabActive {
+  background: var(--st-bg);
+  color: var(--st-text);
+  box-shadow: inset 0 2px 0 var(--st-mixed);
+}
+
+/* Config copy — italic label + amber accent */
+.SimTabConfig .SimTabLabel {
+  font-style: italic;
+}
+
+.SimTabConfig.SimTabActive {
+  box-shadow: inset 0 2px 0 var(--st-takeoff);
+}
+
+/* ── Status dot ── */
+.SimTabDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--st-transition);
+}
+
+.SimTabDotPlaying {
+  background: var(--st-playing);
+  box-shadow: 0 0 4px var(--st-playing);
+  animation: simtab-pulse 1.6s ease-in-out infinite;
+}
+
+.SimTabDotPaused {
+  background: var(--st-paused);
+}
+
+@keyframes simtab-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .45; }
+}
+
+/* ── Tab label ── */
+.SimTabLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+/* ── Close button ── */
+.SimTabClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  margin-left: -2px;
+  border-radius: 4px;
+
+  line-height: 1;
+  color: var(--st-text-muted);
+  opacity: 0;
+  transition: opacity var(--st-transition), background var(--st-transition),
+    color var(--st-transition);
+  cursor: pointer;
+}
+
+.SimTab:hover .SimTabClose,
+.SimTabActive .SimTabClose {
+  opacity: 1;
+}
+
+.SimTabClose:hover {
+  background: var(--st-danger);
+  color: #fff;
+}
+
+/* ═══ Action buttons ═══ */
+.SimTabActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  margin-left: auto;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Shared button base */
+.SimTabButtonCopy,
+.SimTabButtonNew {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--st-radius);
+  background: transparent;
+  font-family: var(--st-font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--st-transition), color var(--st-transition),
+    border-color var(--st-transition);
+}
+
+/* Copy Config — amber */
+.SimTabButtonCopy {
+  border-color: var(--st-takeoff);
+  color: var(--st-takeoff);
+}
+.SimTabButtonCopy:hover {
+  background: rgba(245, 158, 11, .12);
+  color: #fcd34d;
+  border-color: #fcd34d;
+}
+
+/* + New Simulation — violet */
+.SimTabButtonNew {
+  border-color: var(--st-mixed);
+  color: var(--st-mixed);
+}
+.SimTabButtonNew:hover {
+  background: rgba(139, 92, 246, .12);
+  color: #c4b5fd;
+  border-color: #c4b5fd;
+}
