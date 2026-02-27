@@ -29,9 +29,9 @@ class Logger:
         log_dir.mkdir(exist_ok=True)
         
         self._file_path = log_dir / f"state_{self.run_id}.jsonl"
-        self._file__path_event = log_dir / f"state_{self.run_id}.txt"
+        self._file__path_event = log_dir / f"event_{self.run_id}.jsonl"
         self._file_log = Path(self._file_path).open("wb")
-        self._file_event = Path(self._file__path_event).open("w", encoding="utf-8")
+        self._file_event = Path(self._file__path_event).open("wb")
 
         self._log_index : list = [0] * 60*60*24
         self._log_offset : int = 0
@@ -95,7 +95,13 @@ class Logger:
         minute: int = (tick % 3600) // 60
         second: int = tick % 60
 
-        self._file_event.write(f"[{hour:02}:{minute:02}:{second:02}] {log}\n")
+        logStr = f"[{hour:02}:{minute:02}:{second:02}] {log}\n"
+
+        line = {"tick": tick, "event": logStr}
+
+        encoded_line = self._dumps(line, separators=(",", ":")).encode("utf-8") + b"\n"
+        self._file_event.write(encoded_line)
+
 
     #usage: get_state_logs_as_json(tick=x) OR get_sate_logs(lower_bound = x, upper_bound = x) OR get_state_logs() (entire log - NOT RECOMENDED! just pass the entire file at that point)
     def get_state_logs_as_json(self, tick : int | None = None, lower_bound : int | None = None, upper_bound : int | None = None) -> str:
