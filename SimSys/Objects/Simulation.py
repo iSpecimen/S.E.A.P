@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math as math
+
 from SimSys.Objects.Plane import Plane
 from .HoldingPatternQueue import HoldingPatternQueue
 from .TakeOffQueue import TakeOffQueue
@@ -43,7 +45,7 @@ class Simulation:
         # Timetable
         self.schedule_arrivals: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         self.schedule_departures: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
-        self._generate_dummy_schedule()
+        self._generate_schedule(60,60)
 
     def _generate_dummy_schedule(self) -> None:
         # Generate roughly 15 arrivals and 15 departures for the hour to stress test
@@ -61,6 +63,19 @@ class Simulation:
                 emergency_plane.fuel_seconds = 800  # Will trigger emergency/diversion rapidly
                 self.schedule_departures[i].append(emergency_plane)
                 self._allPlanes.append(emergency_plane)
+
+    def _generate_schedule(self, inbound : int, outbound : int) -> None: #flow in planes per hour
+        inboundInterval = math.floor((60.0 / inbound) * 60.0)
+        for i in range(1, 3600 * 24, inboundInterval):
+            plane = Plane(f"ARR{i}", True, i)
+            self.schedule_arrivals[plane.mock_values(i)].append(plane)
+            self._allPlanes.append(plane)
+
+        outboundInterval = math.floor((60.0 / outbound) * 60)
+        for i in range(1, 3600 * 24, inboundInterval):
+            plane = Plane(f"DEP{i}", False, i)
+            self.schedule_departures[plane.mock_values(i)].append(plane)
+            self._allPlanes.append(plane)
 
     def generate_runway_config(self, runway_config: tuple[int, int, int] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway]:
         if runway_config == None: 
