@@ -51,7 +51,7 @@ class Logger:
         return [dict(zip(schema, row)) for row in rows]
 
     #Note: differs from UML because creating many dictionaries at runtime is resource intensive
-    def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway]):
+    def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway], maxTqSize: int, maxHqSize: int, avgTqWait: int, avgTqDelay: int, avgHqWait: int, avgHqDelay: int):
         self._log_index[tick] = self._log_offset
 
         holding_values = [
@@ -78,12 +78,15 @@ class Logger:
 
         payload = {
             "tick": tick,
-
             "HoldingQueue": dict(zip(self.__HoldingQueue, holding_values)),
-
             "TakeoffQueue": dict(zip(self.__TakeoffQueue, takeoff_values)),
-
             "runways": self.rows_to_dicts(self.__runwaySchema, runway_rows),
+            "maxTqSize": maxTqSize,
+            "maxHqSize": maxHqSize,
+            "avgTqWait": avgTqWait,
+            "avgTqDelay": avgTqDelay,
+            "avgHqWait": avgHqWait,
+            "avgHqDelay": avgHqDelay
         }
 
         encoded_line = self._dumps(payload, separators=(",", ":")).encode("utf-8") + b"\n"
