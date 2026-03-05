@@ -8,68 +8,80 @@ import RunwayCard from "../components/RunwayCard";
 import TakeoffQueue from "../components/TakeoffQueue";
 import HoldingPattern from "../components/HoldingPattern";
 import Statistics from "../components/Statistics";
-import SimulationTab from "../components/SimulationTab";
-import { useSimulation } from "../context/SimulationContext";
 
 // Declaring functional component const
 const MainPage = () => {
     const [takeoffFlights, setTakeoffFlights] = useState([
-        { callsign: 'MX123', destination: 'LONDON', time: '12:45' },
-        { callsign: 'UA990', destination: 'NEW YORK', time: '13:10' },
-        { callsign: 'AF442', destination: 'PARIS', time: '13:25' },
-        { callsign: 'LH101', destination: 'BERLIN', time: '13:40' },
+        { callsign: 'MX123', destination: 'LONDON', time: '12:45', isEmergency: false },
+        { callsign: 'UA990', destination: 'NEW YORK', time: '13:10', isEmergency: false },
+        { callsign: 'AF442', destination: 'PARIS', time: '13:25', isEmergency: false },
+        { callsign: 'LH101', destination: 'BERLIN', time: '13:40', isEmergency: false },
     ]);
 
-    // Mock data for the Holding Pattern
     const [holdingFlights, setHoldingFlights] = useState([
-        { callsign: 'CS261', origin: 'LISBON', time: '06:50' },
-        { callsign: 'QA332', origin: 'DOHA', time: '07:15' },
+        { callsign: 'CS261', origin: 'LISBON', time: '06:50', isEmergency: false },
+        { callsign: 'QA332', origin: 'DOHA', time: '07:15', isEmergency: false },
     ]);
 
+    // Toggle Emergency status for a specific flight
+    const handleEmergencyToggle = (callsign, newState) => {
+        console.log(`Notifying backend: Flight ${callsign} emergency status is now ${newState}`);
+        
+        // Update local state so the UI changes immediately
+        const updateList = (list) => list.map(f => 
+            f.callsign === callsign ? { ...f, isEmergency: newState } : f
+        );
+        
+        setTakeoffFlights(updateList);
+        setHoldingFlights(updateList);
+    };
+
+    
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
+    const [maxWaitConfig, setmaxWaitConfig] = useState({
+        maxWaitTakeoff: 30,
+        maxWaitHolding: 30
+    });
 
-    const { activeSim, togglePlayPause } = useSimulation();
+    // 2. Define the handler that actually changes the number
+    const handlemaxWaitConfigChange = (key, val) => {
+        setmaxWaitConfig(prev => ({
+            ...prev,
+            [key]: Number(val) // Convert string input to actual number
+        }));
+    };
 
-    // Fallbacks while no simulation is loaded
-    const runways = activeSim?.runways || [];
-    const takeoffQueue = activeSim?.takeoffQueue || [];
-    const holdingPattern = activeSim?.holdingPattern || [];
-    const cancellations = activeSim?.cancellations || [];
-    const statistics = activeSim?.statistics || {};
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
             <header className="tabBar">
-                <SimulationTab
-                    onTabChange={(id) => console.log("Switched to tab:", id)}
-                    onNewSimulation={() => console.log("New simulation requested")}
-                    onCloseTab={(id) => console.log("Closed tab:", id)}
-                />
 
             </header>
             {/*Main Content*/}
             <div className="mainBody">
                 {/*Left Side*/}
-                <div className="leftSidebar">
-                    <TakeoffQueue flights={takeoffFlights} />
-                    <HoldingPattern flights={holdingFlights} />
+               <div className= "leftSidebar">         
+                    <TakeoffQueue 
+                        flights={takeoffFlights} 
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
+                    <HoldingPattern 
+                        flights={holdingFlights} 
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
                 </div>
 
-
+              
                 {/*Centre Card*/}
                 <main className="centre">
                     <div className="runwayGrid">
-                        {/*Runways render dynamically with .map(), so each tab has its own runway config*/}
-                        {runways.map((rw) => (
-                            <RunwayCard
-                                key={rw.id}
-                                runwayID={rw.id}
-                                runwayName={rw.name}
-                                initialMode={rw.mode}
-                                initialStatus={rw.status}
-                            />))}
+                        {/* mock up */}
+                        <RunwayCard runwayName="Runway 1" initialMode="Take-off" fuelLevel={100} hoverInfo="CALL-SIGN:124 ORIGIN: BKK" />
+                        <RunwayCard runwayName="Runway 2" initialMode="Mixed" />
+                        <RunwayCard runwayName="Runway 3" initialMode="Landing" />
+                        <RunwayCard runwayName="Runway 4" initialMode="Mixed" />
                     </div>
                     <div className="timeline">
                         <Timeline
@@ -91,14 +103,16 @@ const MainPage = () => {
                     </div>
                     <div className="Statistics">
                         <div className="Statistics">
-                            <Statistics
-                                maxInTakeoff={38}
-                                maxInHolding={44}
-                                maxWaitTakeoff={40}
-                                maxWaitHolding={10}
-                                avgDelayTakeoff={null}
-                                avgDelayArrival={null}
-                            />
+                        <Statistics
+                            maxWaitConfig={maxWaitConfig} 
+                            onMaxWaitConfigChange={handlemaxWaitConfigChange}
+                            maxInTakeoff={38}
+                            maxInHolding={44}
+                            avgWaitTakeoff={40}
+                            avgWaitHolding={10}
+                            avgDelayTakeoff={null}
+                            avgDelayArrival={null}
+                        />
                         </div>
                     </div>
                 </section>

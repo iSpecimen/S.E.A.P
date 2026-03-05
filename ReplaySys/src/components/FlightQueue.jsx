@@ -1,12 +1,8 @@
 import React from 'react';
 import './FlightQueue.css';
 
-export default function FlightTable({ title, columns, data = [] }) {
-  // Set the total number of rows you want to see in the table at all times
+export default function FlightQueue({ title, columns, data = [], onEmergencyToggle }) {
   const minRows = 10;
-  
-  // Calculate how many empty rows are needed
-  // If data.length is 4, we need 6 empty rows. If it's 15, we need 0.
   const emptyRowsCount = Math.max(0, minRows - data.length);
 
   return (
@@ -16,27 +12,40 @@ export default function FlightTable({ title, columns, data = [] }) {
         <table className="flight-data-table">
           <thead>
             <tr>
-              {columns.map((col, i) => (
-                <th key={i}>{col}</th>
-              ))}
+              {columns.map((col, i) => <th key={i}>{col}</th>)}
             </tr>
           </thead>
           <tbody>
-            {/* 1. Render actual flight data */}
             {data.map((flight, i) => (
-              <tr key={`flight-${i}`}>
+              <tr 
+                key={`${flight.callsign}-${i}`} 
+                className={`flight-row ${flight.isEmergency ? 'emergency-active' : ''}`}
+              >
                 <td>{flight.callsign}</td>
                 <td>{flight.location}</td>
-                <td>{flight.time}</td>
+                <td className="time-cell">
+                  {flight.time}
+                  {/* Hover Popup for Emergency Toggle */}
+                  <div className="flight-actions-popup">
+                    <p className="popup-label">{flight.callsign} Details...</p>
+                    <div className="emergency-control">
+                      <span>EMERGENCY</span>
+                      <label className="switch">
+                        <input 
+                          type="checkbox" 
+                          checked={!!flight.isEmergency} 
+                          onChange={() => onEmergencyToggle(flight.callsign, !flight.isEmergency)}
+                        />
+                        <span className="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </td>
               </tr>
             ))}
-
-            {/* 2. Render empty rows to fill the remaining space */}
             {[...Array(emptyRowsCount)].map((_, i) => (
               <tr key={`empty-${i}`} className="empty-row">
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
               </tr>
             ))}
           </tbody>
