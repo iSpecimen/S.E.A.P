@@ -1,12 +1,12 @@
 import React from 'react';
 import FlightQueue from "./FlightQueue.jsx";
 
-export default function HoldingPattern({ flights = [] }) {
+export default function HoldingPattern({ flights = [], onEmergencyToggle }) {
   // Columns specific to Holding
   const columns = ['Call-sign', 'Origin', 'Time'];
 
   const formattedData = flights.map(f => ({
-    callsign: f.callsign,
+    ...f,
     location: f.origin, // Mapping origin to the 'location' slot
     time: f.time
   }));
@@ -16,7 +16,8 @@ export default function HoldingPattern({ flights = [] }) {
       <FlightQueue 
         title="Holding Pattern" 
         columns={columns} 
-        data={formattedData} 
+        data={formattedData}
+        onEmergencyToggle={onEmergencyToggle}
       />
     </div>
   );
