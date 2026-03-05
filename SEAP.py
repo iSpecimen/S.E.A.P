@@ -7,6 +7,7 @@
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import json
 
 from SimSys.SimulatorControls.SystemController import SystemController
@@ -72,18 +73,16 @@ async def startNewSimulation(request: Request):
 # GET /api/state/{major}/{minor}
 
 @app.get("/api/state/{major}/{minor}")
-def getFullState(major: int, minor:int):
-    #Returns the full state log as a JSON array
-    #Frontend stores this in memory, indexes stateLog[tick] as timeline plays
+def getFullState(major: int, minor: int):
 
-    sim=getSimulation(major, minor)
-    
-    try:
-        rawJson= sim._logger.get_state_logs_as_json() #DONT USE THISSSSS
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    
-    return json.loads(rawJson)
+    file_path, file_name = controller.load_sim((major, minor))
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/json",
+        filename=file_name
+    )
+
 
 #Returns final aggregated statistics for a completed simulation
 @app.get("/api/stats/{major}/{minor}")

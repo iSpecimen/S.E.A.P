@@ -29,8 +29,8 @@ class Logger:
         
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
-        
-        self._file_path = log_dir / f"state_{self.run_id}.jsonl"
+        self._file_name = f"state_{self.run_id}.jsonl"
+        self._file_path = log_dir / self._file_name
         self._file__path_event = log_dir / f"event_{self.run_id}.jsonl"
         self._file_log = Path(self._file_path).open("wb")
         self._file_event = Path(self._file__path_event).open("wb")
@@ -40,6 +40,9 @@ class Logger:
         self._last_logged_tick: int = -1
         self._dumps = json.dumps
 
+    def get_file_data(self) -> tuple[str, str]: # Ati - I don't to break encapsulation, so added public getter for log file data.
+        return (self._file_path, self._file_name)
+    
     def _queue_planes_as_dicts(self, q):
         rows = [self.__plane_get(p) for p in q.getNodeAsList()]
         return self.rows_to_dicts(self.__plane_schema, rows)

@@ -51,6 +51,9 @@ class Simulation:
         # Dynamic schedule generation
         self._generate_schedule(inbound_rate, outbound_rate)
 
+    def get_state_log(self): # Ati - Just don't want to break encapsulation so added method for getting logger data.
+        return self._logger.get_file_data()
+
     def _generate_dummy_schedule(self) -> None:
         # Generate roughly 15 arrivals and 15 departures for the hour to stress test
         for i in range(0, 3600 * 24, 30):
