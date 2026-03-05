@@ -53,8 +53,7 @@ async def startNewSimulation(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
-
-    major, minor= controller.current_focus
+    major, minor= controller.get_current_focus()
 
     return {
         "major": major,

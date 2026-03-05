@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 import uuid
 
-DELETE_LOGS : bool = True #Set to False to keep the logs after the simulation has ran
+DELETE_LOGS : bool = False #Set to False to keep the logs after the simulation has ran
 
 class Logger:
     def __init__(self, sim_name: str):  # Added sim_name str for multi-sim handling, "1.0, 1.1, 2.0.. etc"

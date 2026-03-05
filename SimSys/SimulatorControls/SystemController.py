@@ -24,6 +24,9 @@ class SystemController():
         runway += [None] * (10 - len(runway))
         return {0: runway} # Big question, does there need to be None Runways? 
     
+    def get_current_focus(self):
+        return self.current_focus
+    
     def load_sim(self, sim_version: tuple[int, int]) -> tuple[str, str]: # Changing Tab focus to new sim. Will return file_path and file_name
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet.")
@@ -35,7 +38,7 @@ class SystemController():
             raise KeyError(f"Simulation version {major}.{minor} does not exist.")
         
         # Return the json log file path
-        return str(target_sim.get_state_log())
+        return target_sim.get_state_log()
 
     def start_sim(self, runway_configuration: tuple[int, int, int] | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
         # runway_configuration = [takeoff, mixed, landing]
