@@ -39,6 +39,7 @@ export default function RunwayCard({
   const runway = activeSim?.runways.find(r => r.id === runwayID);
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
+  
 
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });

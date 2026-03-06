@@ -78,6 +78,7 @@ def getFullState(major: int, minor: int):
 
     with open(file_path, "r") as f:
         data = json.load(f)
+        
     print(file_path)
     return data 
 
