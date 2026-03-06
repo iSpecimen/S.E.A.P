@@ -5,7 +5,7 @@ export default function Statistics({
   maxInTakeoff, maxInHolding,
   avgWaitTakeoff, avgWaitHolding,
   avgDelayTakeoff, avgDelayArrival,  
-  maxWaitConfig, 
+  maxWaitConfig = {}, 
   onMaxWaitConfigChange
 }) {
   return (

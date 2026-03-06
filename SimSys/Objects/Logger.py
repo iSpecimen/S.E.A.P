@@ -32,7 +32,9 @@ class Logger:
         self._file_name = f"state_{self.run_id}.jsonl"
         self._file_path = log_dir / self._file_name
         self._file__path_event = log_dir / f"event_{self.run_id}.jsonl"
-        self._file_log = Path(self._file_path).open("wb")
+        self._file_log = Path(self._file_path).open("w", encoding="utf-8")
+        self._file_log.write("[")
+        self._first_entry = True
         self._file_event = Path(self._file__path_event).open("wb")
 
         self._log_index : list = [0] * 60*60*24
@@ -94,9 +96,13 @@ class Logger:
             "avgHqDelay": avgHqDelay
         }
 
-        encoded_line = self._dumps(payload, separators=(",", ":")).encode("utf-8") + b"\n"
-        self._file_log.write(encoded_line)
-        self._log_offset += len(encoded_line)
+        json_obj = self._dumps(payload, separators=(",", ":"))
+
+        if not self._first_entry:
+            self._file_log.write(f",\n")
+
+        self._file_log.write(json_obj)
+        self._first_entry = False
         self._last_logged_tick = tick
 
     def add_event_log(self, tick: int, log: str) -> None:
@@ -161,6 +167,11 @@ class Logger:
             lines = [line for line in data.decode("utf-8").splitlines() if line]
             return "[" + ",".join(lines) + "]"
         
+    def finalize(self):
+        self._file_log.write("]")
+        self._file_log.close()
+        self._file_event.close()
+
     def clear_log_file(self) -> None:
         if DELETE_LOGS:
             if self._file_path.exists():

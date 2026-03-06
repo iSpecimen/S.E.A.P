@@ -50,6 +50,7 @@ const createSimState = (config = {}) => ({
 //Maps one tick's Logger class output to a component-friendly prop
 // Allows the components to easily access and render the information
 function frameToComponentState(frame) {
+
     if (!frame) {
         return {};
     }
@@ -148,6 +149,7 @@ export function SimulationProvider({ children }) {
                 fetchFullState(major, minor),
                 fetchStatistics(major, minor),
             ]);
+            
 
             // Get initial frame (tick 0)
             const initialFrame = frameToComponentState(stateLog[0]);
@@ -177,6 +179,9 @@ export function SimulationProvider({ children }) {
                 ...prev,
                 [tabID]: { simNumber: thisSimNumber, copyNumber: null },
             }));
+            console.log("STATE LOG:", stateLog);
+            console.log("Initial frame:", stateLog[0]);
+            console.log("Mapped frame:", initialFrame);
         } catch (err) {
             setSimulations((prev) => ({
                 ...prev,

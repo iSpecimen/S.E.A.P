@@ -76,12 +76,10 @@ def getFullState(major: int, minor: int):
 
     file_path, file_name = controller.load_sim((major, minor))
 
-    return FileResponse(
-        path=file_path,
-        media_type="application/json",
-        filename=file_name
-    )
-
+    with open(file_path, "r") as f:
+        data = json.load(f)
+    print(file_path)
+    return data 
 
 #Returns final aggregated statistics for a completed simulation
 @app.get("/api/stats/{major}/{minor}")
