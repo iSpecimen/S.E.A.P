@@ -373,7 +373,7 @@ export function SimulationProvider({ children }) {
     //    labelMap     — tab labelling: tabID → { simNumber, copyNumber }
     //
     //  Actions:
-    //    createSimulation(config)              — Start Page calls this
+    //    createSimulation(config)              — Start Page calls this when it starts
     //    duplicateSimulation(sourceID, newID)  — Copy Config calls this
     //    switchTab(tabID)                      — SimulationTab calls this
     //    removeSimulation(tabID)               — Close tab button calls this
