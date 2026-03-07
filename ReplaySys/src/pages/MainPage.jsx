@@ -30,13 +30,23 @@ const MainPage = () => {
     if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
     if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
-
+    // Fallbacks while no simulation is loaded
+    const runways = activeSim?.runways || [];
+    const takeoffQueue = activeSim?.takeoffQueue || [];
+    const holdingPattern = activeSim?.holdingPattern || [];
+    const cancellations = activeSim?.cancellations || [];
+    const statistics = activeSim?.statistics || {};
 
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
             <header className="tabBar">
-                <SimulationTab />
+                <SimulationTab
+                    onTabChange={(id) => console.log("Switched to tab:", id)}
+                    onNewSimulation={() => console.log("New simulation requested")}
+                    onCloseTab={(id) => console.log("Closed tab:", id)}
+                />
+
             </header>
 
             {/*Main Content*/}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { act, useState } from 'react';
 import './RunwayCard.css';
 import planeFuelLow from '../assets/plane-fuel-low.png';
 import planeFuelLowMid from '../assets/plane-fuel-lowmid.png';
@@ -8,9 +8,10 @@ import planeFuelHigh from '../assets/plane-fuel-high.png';
 import { useSimulation } from '../context/SimulationContext';
 
 
+// --- Configuration ---
 
 // This map defines the colors for different modes.
-
+// You can add more modes and colors here.
 const colorMap = {
   'Take-off': '#96711E',
   'Landing': '#265EA8',
@@ -18,10 +19,6 @@ const colorMap = {
   'Unavailable': '#A0A0A0',
   'default': '#A0A0A0' // Fallback color
 };
-
-// Statuses that mean the runway is actively usable (colored by mode)
-// Using lowercase for case-insensitive matching
-const ACTIVE_STATUSES = ['available', 'runway in use'];
 
 // --- Main Component ---
 
@@ -31,7 +28,7 @@ export default function RunwayCard({
   callSign = "N/A",
   fuelLevel = 60,
   initialMode = "Mixed",
-  initialStatus = "Available",
+  initialStatus = "AVAILABLE",
   hoverInfo = "No flight details available." // Content for the hover box
 }) {
   const { activeSim, updateRunway } = useSimulation();
@@ -39,6 +36,7 @@ export default function RunwayCard({
   const runway = activeSim?.runways.find(r => r.id === runwayID);
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
+  
 
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
@@ -57,11 +55,9 @@ export default function RunwayCard({
 
   const currentPlaneImg = getFuelImage(fuelLevel);
 
-  const isPlaying = activeSim?.playState === "playing";
-
-  // Determine color: active statuses get colored by mode, everything else is grey
-  const isActive = ACTIVE_STATUSES.includes(status.toLowerCase());
-  const activeColor = isActive
+  // 2. Create a "Live Color" variable 
+  // This logic runs every time the component renders
+  const activeColor = status === 'AVAILABLE'
     ? (colorMap[mode] || colorMap['default'])
     : colorMap['Unavailable'];
 
@@ -99,13 +95,13 @@ export default function RunwayCard({
           </div>
         </div>
 
-        {/* 3. The Dropdowns */}
+        {/* 3. The Dropdowns) */}
         <div className="runway-controls">
 
           {/* Mode Dropdown */}
           <div className="control-group">
             <label>MODE</label>
-            <select value={mode} onChange={handleModeChange} disabled={isPlaying}>
+            <select value={mode} onChange={handleModeChange}>
               <option value="Take-off">Take-off</option>
               <option value="Landing">Landing</option>
               <option value="Mixed">Mixed</option>
@@ -115,9 +111,8 @@ export default function RunwayCard({
           {/* Status Dropdown */}
           <div className="control-group">
             <label>STATUS</label>
-            <select value={status} onChange={handleStatusChange} disabled={isPlaying}>
-              <option value="Available">AVAILABLE</option>
-              <option value="Runway in use">IN USE</option>
+            <select value={status} onChange={handleStatusChange}>
+              <option value="AVAILABLE">AVAILABLE</option>
               <option value="Runway Inspection">Runway Inspection</option>
               <option value="Snow Clearance">Snow Clearance</option>
               <option value="Equipment Failure">Equipment Failure</option>
