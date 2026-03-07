@@ -236,6 +236,23 @@ export function SimulationProvider({ children }) {
         }));
     }, [activeTabID]);
 
+    // WHAT CAN BE ACCESSED BY WHAT AT A PARTICULAR TIME?
+    //  State:
+    //    simulations  — the full dictionary of all tabs
+    //    activeTabID  — which tab is currently selected (e.g. "1.0")
+    //    activeSim    — shortcut: the currently selected tab's state object
+    //    labelMap     — tab labelling: tabID → { simNumber, copyNumber }
+    //
+    //  Actions:
+    //    createSimulation(config)              — Start Page calls this when it starts
+    //    duplicateSimulation(sourceID, newID)  — Copy Config calls this
+    //    switchTab(tabID)                      — SimulationTab calls this
+    //    removeSimulation(tabID)               — Close tab button calls this
+    //    requestNewSimulation()                — "+ New Simulation" button calls this
+    //    togglePlayPause()                     — Timeline play button calls this
+    //    seekToTick(tick)                      — Timeline slider calls this
+    //    updateRunway(runwayID, changes)       — RunwayCard dropdown calls this
+    //
     return (
         <SimulationContext.Provider
             value={{
