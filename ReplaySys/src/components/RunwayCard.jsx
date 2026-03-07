@@ -26,7 +26,8 @@ export default function RunwayCard({
   runwayID,
   runwayName = "runway 1",
   callSign = "N/A",
-  fuelLevel = 60,
+  fuelLevel = 20,
+  defaultRemainingTime = 0,
   initialMode = "Mixed",
   initialStatus = "AVAILABLE",
   hoverInfo = "No flight details available." // Content for the hover box
@@ -42,7 +43,7 @@ export default function RunwayCard({
 
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
-  
+  const remainingTime = runway?.remainingTime || defaultRemainingTime;
 
 
   // Write changes TO CONTEXT instead of local state
