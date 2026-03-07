@@ -27,9 +27,9 @@ class Plane:
 
         self._fuel_seconds: int = 0
 
-    def mock_values(self) -> int:
+    def mock_values(self, scheduleTime : int = None) -> int:
         """Populate plane data with dummy info, returns time the plane should depart/take-off"""
-        self._scheduled_time = random.randint(0, 24 * 60 * 60)  # 24 hours
+        self._scheduled_time = random.randint(0, 24 * 60 * 60) if scheduleTime is None else scheduleTime
         # random.gauss needs mean & standard dev. as a proportion of the mean
         self._system_time = int(random.gauss(self._scheduled_time, 5 * 60 / self._scheduled_time))  # 5 minute deviation
         self._system_time = max(0, min(self._system_time, 24*60*60 - 1)) #clamping fix

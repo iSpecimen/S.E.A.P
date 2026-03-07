@@ -47,6 +47,7 @@
   border-radius: 2px;
 }
 
+
 .statCard {
   background-color: #fff8e7;
   border-radius: 10px;
@@ -85,4 +86,65 @@
   color: #d97706;
   line-height: 1.1;
   margin-top: 4px;
+}
+
+/* --- CONFIGURATION ROW STYLING (The Toggles) --- */
+
+.configRow {
+  display: flex;
+  background-color: #ffffff; /* The "Gap" color between boxes */
+  gap: 1px; /* Creates the thin divider line */
+  flex-shrink: 0;
+}
+
+.configBox {
+  flex: 1;
+  background-color: #d97706; /* Match your StatCard background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 4px;
+  transition: background-color 0.2s ease;
+}
+
+.configBox:hover {
+  background-color: #b8690e;
+}
+
+.configBox label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: #fef5e8;
+  text-transform: uppercase;
+  margin-bottom: 0px;
+  letter-spacing: 0.02em;
+}
+
+/* The Number Incrementer Styling */
+.configBox input[type="number"] {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ffffff;
+  width: 100%;
+  text-align: center;
+  outline: none;
+  font-family: "Cairo", sans-serif;
+  cursor: pointer;
+  line-height: 1;
+  color-scheme: dark;
+}
+
+/* Remove default browser arrows for a cleaner look, or keep them for functionality */
+.configBox input::-webkit-inner-spin-button,
+.configBox input::-webkit-outer-spin-button {
+  opacity: 1; /* Keep them visible so it's clearly an incrementer */
+}
+
+:host, .statistics {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin-top: auto; /* Pushes to bottom in flex containers */
 }
