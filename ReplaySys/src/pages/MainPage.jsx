@@ -16,6 +16,12 @@ const MainPage = () => {
     //Reading from context
     const { activeSim, seekToTick } = useSimulation();
 
+    // These update automatically whenever seekToTick is called
+    const runways = activeSim?.runways || [];
+    const takeoffQueue = activeSim?.takeoffQueue || [];
+    const holdingPattern = activeSim?.holdingPattern || [];
+    const statistics = activeSim?.statistics || {};
+
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
