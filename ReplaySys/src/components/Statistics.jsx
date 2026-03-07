@@ -2,10 +2,8 @@ import './Statistics.css'
 
 export default function Statistics({
   maxInTakeoff, maxInHolding,
-  avgWaitTakeoff, avgWaitHolding,
-  avgDelayTakeoff, avgDelayArrival,  
-  maxWaitConfig = {}, 
-  onMaxWaitConfigChange
+  maxWaitTakeoff, maxWaitHolding,
+  avgDelayTakeoff, avgDelayArrival
 }) {
   return (
     <div className="statistics">

@@ -34,9 +34,16 @@ export default function RunwayCard({
   const { activeSim, updateRunway } = useSimulation();
   // Read mode/status FROM CONTEXT instead of local state
   const runway = activeSim?.runways.find(r => r.id === runwayID);
+
+  console.log("Runway from context:", runway);
+  console.log("RunwayID prop:", runwayID);
+  console.log("ActiveSim runways:", activeSim?.runways);
+
+
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
   
+
 
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
@@ -113,6 +120,7 @@ export default function RunwayCard({
             <label>STATUS</label>
             <select value={status} onChange={handleStatusChange}>
               <option value="AVAILABLE">AVAILABLE</option>
+              <option value="Runway in use">IN USE</option>
               <option value="Runway Inspection">Runway Inspection</option>
               <option value="Snow Clearance">Snow Clearance</option>
               <option value="Equipment Failure">Equipment Failure</option>
