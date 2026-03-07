@@ -61,6 +61,7 @@ function frameToComponentState(frame) {
         callsign: r.plane?.callsign,
         bearing: r.bearing,
         expectedFreeTime: r.expected_free_time,
+        plane: r.plane,
     }));
 
     // Takeoff Queue 

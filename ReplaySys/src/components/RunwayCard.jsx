@@ -43,9 +43,11 @@ export default function RunwayCard({
 
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
-  const remainingTime = runway?.remainingTime || defaultRemainingTime;
+  // const remainingTime = runway?.remainingTime || defaultRemainingTime;   -- We can add runway progress updates and fuel updates to be separate. 
 
-
+  const plane = runway?.plane;
+  const fuelMinutes = plane ? Math.floor(plane._fuel_seconds / 60) : null;
+  
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
   const handleStatusChange = (e) => updateRunway(runwayID, { status: e.target.value });
@@ -135,7 +137,19 @@ export default function RunwayCard({
         {/* Since data comes from the backend, this box will grow to fit it */}
         <div className="hover-content">
           <strong>Flight Details:</strong>
-          <p>{hoverInfo || "Could not load data."}</p>
+          {plane ? (
+            <>
+              <div><strong>Callsign:</strong> {plane.callsign}</div>
+              <div><strong>Operator:</strong> {plane.operator}</div>
+              <div><strong>Route:</strong> {plane.origin} → {plane.destination}</div>
+              <div><strong>Altitude:</strong> {Math.round(plane._altitude)} ft</div>
+              <div><strong>Speed:</strong> {Math.round(plane._ground_speed)} kts</div>
+              <div><strong>Fuel:</strong> {Math.floor(plane._fuel_seconds / 60)} min</div>
+              <div><strong>Emergency:</strong> {plane._emergency ? "YES 🚨" : "No"}</div>
+            </>
+          ) : (
+            <p>No aircraft on runway</p>
+          )}
         </div>
       </div>
     </div>
