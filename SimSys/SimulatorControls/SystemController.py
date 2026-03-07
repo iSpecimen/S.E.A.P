@@ -40,7 +40,7 @@ class SystemController():
         # Return the json log file path
         return target_sim.get_state_log()
 
-    def start_sim(self, runway_configuration: tuple[int, int, int] | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
+    def start_sim(self, runway_configuration: tuple[int, int, int] | None = None, inbound_flow: int | None = None, outbound_flow: int | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
         # runway_configuration = [takeoff, mixed, landing]
         
         # Since it's a new major version make a new dict
@@ -50,11 +50,11 @@ class SystemController():
         else:
             runwaymap = self.create_runway_map(runway_configuration)
         if not self.sim_majors: # First time = main menu start
-            new_sim_minor[0] = Simulation("1.0", runwaymap)
+            new_sim_minor[0] = Simulation("1.0", runwaymap, inbound_flow, outbound_flow)
             self.sim_majors[1] = new_sim_minor # Add to sim_majors dict
         else:
             newest_major: int = len(self.sim_majors)+1
-            new_sim_minor[0] = Simulation(f"{newest_major}.0", runwaymap)
+            new_sim_minor[0] = Simulation(f"{newest_major}.0", runwaymap, inbound_flow, outbound_flow)
             self.sim_majors[newest_major] = new_sim_minor
             self.current_focus = (newest_major, 0)
 
@@ -72,14 +72,17 @@ class SystemController():
         except KeyError:
             raise KeyError(f"Simulation version {maj}.{mir} does not exist. Cannot Change Config for non-existent sim")
         newest_minor = len(self.sim_majors[maj])
+
         adapted_schedule = target_sim.runway_config_schedule
+        inbound, outbound = target_sim.inbound_outbound()
+
         if adapted_schedule[0][runway_num-1] == newmode:
             raise KeyError (f"Runway Config is already set to this.")
         else:
             adapted_schedule[0][runway_num-1] = newmode
             finalconfig = {0: target_sim.runway_config_schedule[0]}
             finalconfig[tick] = adapted_schedule[0]
-        newSim = Simulation(f"{maj}.{newest_minor}", finalconfig)
+        newSim = Simulation(f"{maj}.{newest_minor}", finalconfig, inbound, outbound)
         self.sim_majors[maj][newest_minor] = newSim
         self.current_focus = (maj, newest_minor)
         newSim.run()

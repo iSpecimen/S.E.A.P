@@ -49,7 +49,7 @@ async def startNewSimulation(request: Request):
 
     #Tries to run a simulation; raises an error if it fails
     try:
-        logPath = controller.start_sim(runwayConfig)
+        logPath = controller.start_sim(runwayConfig, inboundFlow, outboundFlow)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
