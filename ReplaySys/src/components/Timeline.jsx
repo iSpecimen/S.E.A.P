@@ -1,64 +1,16 @@
 import { PauseIcon, PlayIcon } from "@heroicons/react/24/solid";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import "./Timeline.css"
+import { useSimulation } from "../context/SimulationContext";
 
 
-const Timeline = ({ onTimeChange,
-    onPlayStateChange,
-    initialTime = 0,
-    disabled = false }) => {
-    //Track where we are in the 24-hour day in seconds
-    const [currentTimeSec, setCurrentTimeSec] = useState(initialTime);
-    const [isPlaying, setIsPlaying] = useState(false);
-    //Stores interval ID 
-    // Ref rather than state so that changing it doesn't cause a re-render
-    const intervalID = useRef(null);
-    const handlePlayPause = () => {
-        if (isPlaying) {
-            //Stop the clock
-            clearInterval(intervalID.current);
-            intervalID.current = null;
-            setIsPlaying(false);
-        }
-        else {
-            //Use the functional form of the setter rather than reading currentTimeSec directly
-            // Functional form always gets the latest value, not the one made at creation
-            intervalID.current = setInterval(() => {
-                setCurrentTimeSec((prev) => {
-                    if (prev >= 86399) {
-                        clearInterval(intervalID.current);
-                        intervalID.current = null;
-                        setIsPlaying(false);
-                        return 86399;
-                    }
-                    return prev + 1;
-                });
-            }, 1000);
-            setIsPlaying(true);
-        }
-    }
-    //Tells parent component about time changes, so the simulation can fetch the right the right log values at the right times
-    useEffect(() => {
-        if (onTimeChange) onTimeChange(currentTimeSec);
-    }, [currentTimeSec]);
-
-    //Parent notified so that the simulation will know when the lock/unlock runway mode changes
-    useEffect(() => {
-        if (onPlayStateChange) onPlayStateChange(isPlaying);
-    }, [isPlaying]);
-
-
-    //Cleanup function - undoes what the last function did
-    useEffect(() => {
-        return () => {
-            if (intervalID.current) clearInterval(intervalID.current);
-        };
-    }, []);
-
-
+const Timeline = ({ disabled = false }) => {
+    // Read play state and current tick FROM CONTEXT
+    const { activeSim, togglePlayPause, seekToTick } = useSimulation();
+    const isPlaying = activeSim?.playState === "playing";
+    const currentTimeSec = activeSim?.timelineSec ?? 0;
 
     return (
-
         <div className="timelineController">
             {/*Max number of seconds in a day is 86399 */}
             <div className="timelineTimeDisplay">
@@ -76,7 +28,7 @@ const Timeline = ({ onTimeChange,
                     min={0}
                     max={86399}
                     value={currentTimeSec}
-                    onChange={(e) => setCurrentTimeSec(Number(e.target.value))}
+                    onChange={(e) => seekToTick(Number(e.target.value))}
                     className="timelineSlider"
                 />
             </div>
@@ -88,19 +40,16 @@ const Timeline = ({ onTimeChange,
                 ))}
             </div>
             <div className="timelineControls">
-                <button className="timelineBtnPlay" onClick={handlePlayPause}>
+                <button className="timelineBtnPlay" onClick={togglePlayPause} disabled={disabled}>
                     {isPlaying ? <PauseIcon /> : <PlayIcon className="playIcon" />}
                 </button>
             </div>
         </div>
-
     );
-
 };
 
 // Seconds TO Minutes to Hours helper
 const formatTime = (totalSec) => {
-
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = Math.floor(totalSec % 60);
@@ -108,15 +57,10 @@ const formatTime = (totalSec) => {
 }
 export default Timeline;
 
-
-
-
-//These are the marks along the timeline slider so the user has a sense of where they are
+// These are the marks along the timeline slider so the user has a sense of where they are
 const TICKMARKS = Array.from({ length: 12 }, (_, i) => i * 2 * 3600);
 
-
-
-//Seconds to minute to hour conversions
+// Seconds to minute to hour conversions
 const formatTimeTick = (totalSec) => {
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
