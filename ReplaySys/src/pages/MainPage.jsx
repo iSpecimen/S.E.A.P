@@ -66,17 +66,9 @@ const MainPage = () => {
                                 initialStatus={rw.status}
                             />))}
                     </div>
-                    {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
-                    We pass seekToTick as that callback.
-                    seekToTick indexes into stateLog[newSecond] and
-                    updates runways/takeoffQueue/holdingPattern,
-                    which causes all the components above to re-render with the correct data for that second. */}
+                    {/* SimulationContext handles everything */}
                     <div className="timeline">
-                        <Timeline
-                            onTimeChange={seekToTick}
-                            onPlayStateChange={(playing) => console.log("Playing:", playing)}
-                        />
-
+                        <Timeline />
                     </div>
                 </main>
 
