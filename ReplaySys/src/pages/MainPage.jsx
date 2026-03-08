@@ -91,10 +91,12 @@ const MainPage = () => {
                             <Statistics
                                 maxInTakeoff={statistics.max_tqueue_size}
                                 maxInHolding={statistics.max_hqueue_size}
-                                maxWaitTakeoff={statistics.max_tqueue_wait}
-                                maxWaitHolding={statistics.max_hqueue_wait}
+                                avgWaitTakeoff={statistics.avg_tqueue_wait}
+                                avgWaitHolding={statistics.avg_hqueue_wait}
                                 avgDelayTakeoff={statistics.avg_tqueue_delay}
                                 avgDelayArrival={statistics.avg_hqueue_delay}
+                                maxDelayTakeoff={statistics.max_tqueue_delay}
+                                maxDelayHolding={statistics.max_hqueue_delay}
                             />
                         </div>
                     </div>

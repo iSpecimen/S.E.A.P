@@ -2,8 +2,9 @@ import './Statistics.css'
 
 export default function Statistics({
   maxInTakeoff, maxInHolding,
-  maxWaitTakeoff, maxWaitHolding,
-  avgDelayTakeoff, avgDelayArrival
+  avgWaitTakeoff, avgWaitHolding,
+  maxDelayTakeoff, maxDelayHolding,   
+  avgDelayTakeoff, avgDelayArrival,
 }) {
   return (
     <div className="statistics">
@@ -22,14 +23,14 @@ export default function Statistics({
           <span className="statCardValue">{maxInHolding ?? '—'}</span>
         </div>
         <div className="statCard">
-          <span className="statCardTitle">Max Wait Time (min)</span>
+          <span className="statCardTitle">Avg Wait Time (min)</span>
           <span className="statCardSubtitle">Take-off Queue</span>
-          <span className="statCardValue">{maxWaitTakeoff ?? '—'}</span>
+          <span className="statCardValue">{avgWaitTakeoff ?? '—'}</span>
         </div>
         <div className="statCard">
-          <span className="statCardTitle">Max Wait Time (min)</span>
+          <span className="statCardTitle">Avg Wait Time (min)</span>
           <span className="statCardSubtitle">Holding Pattern</span>
-          <span className="statCardValue">{maxWaitHolding ?? '—'}</span>
+          <span className="statCardValue">{avgWaitHolding ?? '—'}</span>
         </div>
         <div className="statCard">
           <span className="statCardTitle">Avg Delay (min)</span>
@@ -40,6 +41,16 @@ export default function Statistics({
           <span className="statCardTitle">Avg Delay (min)</span>
           <span className="statCardSubtitle">Arrival</span>
           <span className="statCardValue">{avgDelayArrival ?? '—'}</span>
+        </div>
+        <div className="statCard">
+            <span className="statCardTitle">Max Delay (min)</span>
+            <span className="statCardSubtitle">Take-off</span>
+            <span className="statCardValue">{maxDelayTakeoff ?? '—'}</span>
+        </div>
+        <div className="statCard">
+            <span className="statCardTitle">Max Delay (min)</span>
+            <span className="statCardSubtitle">Arrival</span>
+            <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
         </div>
       </div>
     </div>
