@@ -102,7 +102,7 @@
     width: 100%;
     padding: 6px 8px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 8px;
     background-color: white;
     font-size: 14px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -113,6 +113,12 @@
     background-repeat: no-repeat;
     background-position: right 8px center;
     background-size: 10px;
+}
+
+.control-group select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* 4. Hover Info Box */
@@ -130,17 +136,17 @@
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 10;
-    /* Simple fade-in animation */
+    /* fade-in animation */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    transition-delay: 0.5s; /* Adjust this: 0.5s = half a second delay */
+    transition-delay: 0.5s; 
 
 }
 .runway-container:hover .hover-info-box {
     opacity: 1;
     visibility: visible;
-    transition-delay: 0.5s; /* Keeps delay when appearing */
+    transition-delay: 0.7s; 
 }
 
 @keyframes fadeIn {

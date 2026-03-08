@@ -11,11 +11,13 @@ import { useSimulation } from '../context/SimulationContext';
 // --- Configuration ---
 
 // This map defines the colors for different modes.
-// You can add more modes and colors here.
 const colorMap = {
   'Take-off': '#96711E',
   'Landing': '#265EA8',
   'Mixed': '#9B59B6',
+  'Take-off_muted': '#C4A96A',   // muted gold
+  'Landing_muted': '#7AADD4',    // muted blue
+  'Mixed_muted': '#C49FD4',      // muted purple
   'Unavailable': '#A0A0A0',
   'default': '#A0A0A0' // Fallback color
 };
@@ -40,13 +42,20 @@ export default function RunwayCard({
   console.log("RunwayID prop:", runwayID);
   console.log("ActiveSim runways:", activeSim?.runways);
 
-
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
-  // const remainingTime = runway?.remainingTime || defaultRemainingTime;   -- We can add runway progress updates and fuel updates to be separate. 
+  // const remainingTime = runway?.remainingTime || defaultRemainingTime;   -- We can add runway progress updates and fuel updates to be separate.
+
+  const isPlaying = activeSim?.playState === "playing";
+  const isInUse = status?.toUpperCase() === 'RUNWAY IN USE';
+  const isLocked = isPlaying || isInUse;
 
   const plane = runway?.plane;
   const fuelMinutes = plane ? Math.floor(plane._fuel_seconds / 60) : null;
+
+  const timeRemaining = runway?.expectedFreeTime ?? 0;
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
   
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
@@ -67,9 +76,11 @@ export default function RunwayCard({
 
   // 2. Create a "Live Color" variable 
   // This logic runs every time the component renders
-  const activeColor = status === 'AVAILABLE'
+  const activeColor = status?.toUpperCase() === 'AVAILABLE'
     ? (colorMap[mode] || colorMap['default'])
-    : colorMap['Unavailable'];
+    : status?.toUpperCase() === 'RUNWAY IN USE'
+        ? (colorMap[`${mode}_muted`] || colorMap['default'])
+        : colorMap['Unavailable'];
 
   return (
     <div
@@ -99,6 +110,14 @@ export default function RunwayCard({
               <div className="info-row">
                 <span className="label">Call-sign: </span>
                 <span className="value">{callSign}</span>
+                <div className="info-row">
+                    <span className="label">Runway free in: </span>
+                    <span className="value">
+                        {runway?.plane 
+                            ? `${minutes}m ${String(seconds).padStart(2, '0')}s` 
+                            : '-'}
+                    </span>
+                </div>
               </div>
             </div>
 
@@ -111,7 +130,7 @@ export default function RunwayCard({
           {/* Mode Dropdown */}
           <div className="control-group">
             <label>MODE</label>
-            <select value={mode} onChange={handleModeChange}>
+            <select value={mode} onChange={handleModeChange} disabled={isLocked}>
               <option value="Take-off">Take-off</option>
               <option value="Landing">Landing</option>
               <option value="Mixed">Mixed</option>
@@ -121,12 +140,12 @@ export default function RunwayCard({
           {/* Status Dropdown */}
           <div className="control-group">
             <label>STATUS</label>
-            <select value={status} onChange={handleStatusChange}>
+            <select value={status} onChange={handleStatusChange} disabled={isLocked}>
               <option value="AVAILABLE">AVAILABLE</option>
-              <option value="Runway in use">IN USE</option>
               <option value="Runway Inspection">Runway Inspection</option>
               <option value="Snow Clearance">Snow Clearance</option>
               <option value="Equipment Failure">Equipment Failure</option>
+              <option value="Runway in use" disabled hidden>IN USE</option>
             </select>
           </div>
 
