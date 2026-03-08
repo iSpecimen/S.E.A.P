@@ -78,12 +78,14 @@ class Queue(ABC):
                 self.remove(curr)
             curr = nxt
 
-    def getNodeAsList(self) -> list[QueueNode]:
+    def getNodeAsList(self, countTarget=10) -> list[QueueNode]:
         ls = []
+        count = 0
         curr = self._head
-        while curr is not None:
+        while curr is not None and count < countTarget:
             ls.append(curr.val)
             curr = curr.next
+            count += 1
         
         return ls
 

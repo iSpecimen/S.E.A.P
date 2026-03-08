@@ -41,7 +41,7 @@ class Logger:
         self._dumps = json.dumps
 
     def _queue_planes_as_dicts(self, q):
-        rows = [self.__plane_get(p) for p in q.getNodeAsList()]
+        rows = [self.__plane_get(p) for p in q.getNodeAsList(10)]
         return self.rows_to_dicts(self.__plane_schema, rows)
 
     @staticmethod
