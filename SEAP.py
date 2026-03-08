@@ -138,7 +138,45 @@ def list_simulations():
     
     return versions
 
+# GET /api/newsim/{major}/{minor}
+# For Runway Configuration Changes, create a new sim based on current sim.
+# For creating new sims based on old configs. 
+@app.get("/api/newsim/{major}/{minor}")
+async def create_sim_copy(major: int, minor: int, request: Request):
     
+    body = await request.json()
+
+    # Runway mode/status list from UI
+    # Example: [{"runway_id":0,"mode":"ARRIVAL","status":"OPEN"}, ...]
+    runwayChanges = body.get("runway_changes", [])
+
+    try:
+        logPath = controller.change_runway_config(
+            version=(major, minor),
+            changes=runwayChanges
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Simulation failed: {str(e)}"
+        )
+
+    major, minor = controller.get_current_focus()
+    num_runways, inbound, outbound = controller.get_sim_details((major,minor))
+    
+    return {
+        "major": major,
+        "minor": minor,
+        "version": f"{major}.{minor}",
+        "log_file_path": logPath,
+        "config": {
+            "num_runways":num_runways,
+            "inbound_flow": inbound,
+            "outbound_flow": outbound
+        }
+    }
+
+
 
 
 #-------------HELPER FUNCTIONS-----------------------------------

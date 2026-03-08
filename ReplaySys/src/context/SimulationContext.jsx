@@ -43,7 +43,7 @@ const createSimState = (config = {}) => ({
     timelineSec: 0,
     playState: "paused",
 
-}
+    }
 
 );
 
