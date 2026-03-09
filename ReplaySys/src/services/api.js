@@ -34,7 +34,7 @@ export async function startSimulation({ numRunways, inboundFlow, outboundFlow })
  * Sends a new runway config to run a new sim with.
  * Returns { major, minor, version, config }
  */
-export async function startSimulation({ major, minor, runway_config }) {
+export async function changeSimulation({ major, minor, runway_config }) {
   const res = await fetch(`${BASE_URL}/api/newsim/${major}/${minor}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

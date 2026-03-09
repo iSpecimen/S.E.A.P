@@ -106,19 +106,26 @@ const MainPage = () => {
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
+
                         <ArrivalsDepartures
-                            departures={takeoffQueue.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                destination: p.destination,
-                                time: p.time,
-                            }))}
-                            arrivals={holdingPattern.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                origin: p.origin,
-                                time: p.time,
-                            }))}
+                            departures={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin === "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    destination: p.destination,
+                                    time: p.time,
+                                }))}
+                            arrivals={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin !== "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    origin: p.origin,
+                                    time: p.time,
+                                }))}
                         />
                     </div>
                 </aside>
