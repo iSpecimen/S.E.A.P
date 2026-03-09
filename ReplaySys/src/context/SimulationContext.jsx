@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, useRef } from "react";
 
-import { startSimulation, fetchFullState, fetchStatistics } from "../services/api";
+import { startSimulation, changeSimulation, copySimulation, fetchFullState, fetchStatistics, } from "../services/api";
 //Context creates a shared data layer that both components can read and write to
 // SimTab tells context to "switch to tab X" and MainPage reads context to get tab X's data
 // createContext makes a container a child component can tap into
@@ -200,10 +200,11 @@ export function SimulationProvider({ children }) {
             if (!source) return prev;
             return { ...prev, [newTabID]: JSON.parse(JSON.stringify(source)) };
         });
+        
         setActiveTabID(newTabID);
-
         // Assign a copy label: find the source's simNumber and count existing copies
         setLabelMap((prev) => {
+            
             const sourceInfo = prev[sourceTabID];
             if (!sourceInfo) return prev;
             const rootSimNumber = sourceInfo.simNumber;
@@ -214,6 +215,7 @@ export function SimulationProvider({ children }) {
                 ...prev,
                 [newTabID]: { simNumber: rootSimNumber, copyNumber: existingCopies + 1 },
             };
+            
         });
     }, []);
 

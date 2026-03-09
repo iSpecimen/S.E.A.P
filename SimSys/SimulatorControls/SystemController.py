@@ -130,6 +130,7 @@ class SystemController():
 
         # Essentially, we don't need to waste time rerunning the sim we've already ran, and also, when you make a sim copy, you're basically about to make changes to it.
         # Does not return anything, just the front end letting the backend know that there's a sim tab. 
+        return True
 
     
 if __name__ == "__main__": # When debugging/testing this file, it will try create 2 fresh sims. 1.0 and 2.0
