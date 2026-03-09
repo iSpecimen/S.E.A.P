@@ -1,10 +1,51 @@
+import React, { useState, useEffect } from 'react';
 import './Statistics.css'
+
+function ConfigBox({ label, value, onApply }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  // Sync draft when parent value changes after apply
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const handleApply = () => {
+    const clamped = Math.max(0, Number(draft));
+    setEditing(false);
+    onApply(clamped);
+  };
+
+  return (
+    <div className="configBox">
+      <label>{label}</label>
+      {editing ? (
+        <input
+          type="number"
+          value={draft}
+          min={0}
+          onChange={(e) => setDraft(Math.max(0, Number(e.target.value)))}
+          autoFocus
+        />
+      ) : (
+        <span className="configValue">{value}</span>
+      )}
+      <button
+        className={`configBtn ${editing ? 'applyBtn' : 'editBtn'}`}
+        onClick={editing ? handleApply : () => { setDraft(value); setEditing(true); }}
+      >
+        {editing ? '✔' : '✎'}
+      </button>
+    </div>
+  );
+}
 
 export default function Statistics({
   maxInTakeoff, maxInHolding,
   avgWaitTakeoff, avgWaitHolding,
   maxDelayTakeoff, maxDelayHolding,   
   avgDelayTakeoff, avgDelayArrival,
+  maxWaitConfig, onMaxWaitConfigChange
 }) {
   return (
     <div className="statistics">
@@ -52,6 +93,19 @@ export default function Statistics({
             <span className="statCardSubtitle">Arrival</span>
             <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
         </div>
+      </div>
+      {/* Configurable Thresholds */}
+      <div className="configRow">
+        <ConfigBox
+          label="MAX WAIT (TAKE-OFF)"
+          value={maxWaitConfig.maxWaitTakeoff}
+          onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitTakeoff: val })}
+        />
+        <ConfigBox
+          label="MAX WAIT (HOLDING)"
+          value={maxWaitConfig.maxWaitHolding}
+          onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitHolding: val })}
+        />
       </div>
     </div>
   );

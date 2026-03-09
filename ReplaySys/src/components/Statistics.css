@@ -43,10 +43,9 @@
 .statisticsGrid::-webkit-scrollbar { width: 4px; }
 .statisticsGrid::-webkit-scrollbar-track { background: transparent; }
 .statisticsGrid::-webkit-scrollbar-thumb {
-  background: rgba(218, 130, 28, 0.5); /* Semi-transparent orange */
+  background: rgba(218, 130, 28, 0.5);
   border-radius: 2px;
 }
-
 
 .statCard {
   background-color: #fff8e7;
@@ -88,27 +87,24 @@
   margin-top: 4px;
 }
 
-/* --- CONFIGURATION ROW STYLING (The Toggles) --- */
+/* --- CONFIGURATION ROW --- */
 
 .configRow {
   display: flex;
-  background-color: #ffffff; /* The "Gap" color between boxes */
-  gap: 1px; /* Creates the thin divider line */
+  background-color: #ffffff;
+  gap: 1px;
   flex-shrink: 0;
 }
 
 .configBox {
   flex: 1;
-  background-color: #d97706; /* Match your StatCard background */
+  background-color: #d97706;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 4px;
+  padding: 6px 6px;
+  gap: 4px;
   transition: background-color 0.2s ease;
-}
-
-.configBox:hover {
-  background-color: #b8690e;
 }
 
 .configBox label {
@@ -116,35 +112,106 @@
   font-weight: 800;
   color: #fef5e8;
   text-transform: uppercase;
-  margin-bottom: 0px;
   letter-spacing: 0.02em;
 }
 
-/* The Number Incrementer Styling */
-.configBox input[type="number"] {
-  background: transparent;
-  border: none;
+/* Static display value */
+.configValue {
   font-size: 1.1rem;
   font-weight: 800;
   color: #ffffff;
-  width: 100%;
+  line-height: 1;
+}
+
+/* Input shown only in edit mode */
+.configBox input[type="number"] {
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  width: 50%;
   text-align: center;
   outline: none;
   font-family: "Cairo", sans-serif;
-  cursor: pointer;
-  line-height: 1;
+  padding: 2px 0;
   color-scheme: dark;
 }
 
-/* Remove default browser arrows for a cleaner look, or keep them for functionality */
-.configBox input::-webkit-inner-spin-button,
-.configBox input::-webkit-outer-spin-button {
-  opacity: 1; /* Keep them visible so it's clearly an incrementer */
+/* Shared button base */
+.configBtn {
+  font-family: "Cairo", sans-serif;
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.editBtn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.editBtn:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+.applyBtn {
+  background-color: #ffffff;
+  color: #d97706;
+}
+
+.applyBtn:hover {
+  background-color: #fef5e8;
 }
 
 :host, .statistics {
   position: sticky;
   bottom: 0;
   z-index: 10;
-  margin-top: auto; /* Pushes to bottom in flex containers */
+  margin-top: auto;
+}
+/* Position configBox relatively so button can anchor to bottom-right */
+.configBox {
+  position: relative;
+}
+
+.configBtn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s ease;
+}
+
+.editBtn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.editBtn:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.applyBtn {
+  background-color: #ffffff;
+  color: #d97706;
+}
+
+.applyBtn:hover {
+  background-color: #fef5e8;
 }
