@@ -43,6 +43,31 @@
     min-width: 0;
     gap: 8px;
 }
+ 
+.runwayLegend {
+    display: flex;
+    gap: 20px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    color: #333;
+}
+
+.legendDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+} 
 
 .runwayGrid {
     display: grid;

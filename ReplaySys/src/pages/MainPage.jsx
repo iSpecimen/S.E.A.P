@@ -54,6 +54,25 @@ const MainPage = () => {
 
                 {/*Centre Card*/}
                 <main className="centre">
+                    {/* Runway Mode Legend */}
+                    <div className="runwayLegend">
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#96711E' }} />
+                            Take-off
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#265EA8' }} />
+                            Landing
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#9B59B6' }} />
+                            Mixed
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#A0A0A0' }} />
+                            Unavailable
+                        </span>
+                    </div>
                     <div className="runwayGrid">
                         {/*Runways render dynamically with .map(), so each tab has its own runway config*/}
                         {runways.map((rw) => (
