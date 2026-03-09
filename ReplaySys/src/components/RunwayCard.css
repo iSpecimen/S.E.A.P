@@ -5,6 +5,7 @@
     display: inline-block; /* Keeps the hover box relative to the card */
     margin: 20px;
     font-family: 'Cairo', sans-serif;
+    align-self: flex-start;
 }
 
 /* Wrapper for the card itself */
@@ -135,7 +136,7 @@
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10;
+    z-index: 10; 
     /* fade-in animation */
     opacity: 0;
     visibility: hidden;
