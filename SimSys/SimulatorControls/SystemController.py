@@ -29,8 +29,6 @@ class SystemController():
         inbound, outbound = target_sim.inbound_outbound()
         return runway_count, inbound, outbound 
 
-
-
     def create_runway_map(self, runway_configuration: tuple[int, int, int]):
         tf, mx, ld = runway_configuration
         runway = (
@@ -113,6 +111,25 @@ class SystemController():
         return self.load_sim(self.current_focus)
         # Returns json file path
         pass
+
+    def duplicate_simulation(self, major: int, minor: int):
+        if not self.sim_majors:
+            raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
+        
+        try:
+            target_sim: Simulation = self.sim_majors[major][minor]
+        except KeyError:
+            raise KeyError(f"Simulation version {major}.{minor} does not exist. Cannot copy sim for non-existent sim")
+        
+        newest_minor = len(self.sim_majors[major])
+        target_sim_r_config = target_sim.runway_config_schedule
+        inbound, outbound = target_sim.inbound_outbound()
+        newSim = Simulation("f{major}.{newest_minor}", target_sim_r_config, inbound, outbound)
+        self.sim_majors[major][newest_minor] = newSim
+        self.current_focus = (major, newest_minor)
+
+        # Essentially, we don't need to waste time rerunning the sim we've already ran, and also, when you make a sim copy, you're basically about to make changes to it.
+        # Does not return anything, just the front end letting the backend know that there's a sim tab. 
 
     
 if __name__ == "__main__": # When debugging/testing this file, it will try create 2 fresh sims. 1.0 and 2.0

@@ -51,6 +51,25 @@ export async function changeSimulation({ major, minor, runway_config }) {
   return res.json();
 }
 
+/**
+ * POST /api/copysim/{major}/{minor}
+ * Tells the backend SystemController to store a new copy of a sim and label it accordingly.
+ * Returns { major, minor, version}
+ */
+export async function copySimulation({ major, minor}) {
+  const res = await fetch(`${BASE_URL}/api/newsim/${major}/${minor}`, {
+    method: "POST"
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Simulation failed (${res.status})`);
+  }
+
+  return res.json();
+}
+
+
 
 /**
  * GET /api/state/{major}/{minor}
