@@ -16,12 +16,6 @@ const MainPage = () => {
     //Reading from context
     const { activeSim, seekToTick } = useSimulation();
 
-    // These update automatically whenever seekToTick is called
-    const runways = activeSim?.runways || [];
-    const takeoffQueue = activeSim?.takeoffQueue || [];
-    const holdingPattern = activeSim?.holdingPattern || [];
-    const statistics = activeSim?.statistics || {};
-
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
@@ -30,13 +24,23 @@ const MainPage = () => {
     if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
     if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
-
+    // Fallbacks while no simulation is loaded
+    const runways = activeSim?.runways || [];
+    const takeoffQueue = activeSim?.takeoffQueue || [];
+    const holdingPattern = activeSim?.holdingPattern || [];
+    const cancellations = activeSim?.cancellations || [];
+    const statistics = activeSim?.statistics || {};
 
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
             <header className="tabBar">
-                <SimulationTab />
+                <SimulationTab
+                    onTabChange={(id) => console.log("Switched to tab:", id)}
+                    onNewSimulation={() => console.log("New simulation requested")}
+                    onCloseTab={(id) => console.log("Closed tab:", id)}
+                />
+
             </header>
 
             {/*Main Content*/}
@@ -102,19 +106,26 @@ const MainPage = () => {
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
+
                         <ArrivalsDepartures
-                            departures={takeoffQueue.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                destination: p.destination,
-                                time: p.time,
-                            }))}
-                            arrivals={holdingPattern.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                origin: p.origin,
-                                time: p.time,
-                            }))}
+                            departures={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin === "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    destination: p.destination,
+                                    time: p.time,
+                                }))}
+                            arrivals={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin !== "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    origin: p.origin,
+                                    time: p.time,
+                                }))}
                         />
                     </div>
                 </aside>

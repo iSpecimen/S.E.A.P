@@ -18,6 +18,8 @@ class Simulation:
         
         # Save the schedule of configuration changes
         self.runway_config_schedule = runway_config
+        self.inbound_flow = inbound_rate
+        self.outbound_flow = outbound_rate
         
         # Initialize runways using the configuration at t=0 (10-slot map)
         initial_config = self.runway_config_schedule.get(0, [None] * 10)
@@ -50,6 +52,12 @@ class Simulation:
         
         # Dynamic schedule generation
         self._generate_schedule(inbound_rate, outbound_rate)
+
+    def get_state_log(self): # Ati - Just don't want to break encapsulation so added method for getting logger data.
+        return self._logger.get_file_data()
+    
+    def inbound_outbound(self):
+        return self.inbound_flow, self.outbound_flow
 
     def _generate_dummy_schedule(self) -> None:
         # Generate roughly 15 arrivals and 15 departures for the hour to stress test
@@ -172,6 +180,7 @@ class Simulation:
         print(f"Total Diversions:    {self.diverted_planes_num}")
         print("=================================================")
 
+        self._logger.finalize()
         self._logger.clear_log_file()
 
 if __name__ == "__main__":

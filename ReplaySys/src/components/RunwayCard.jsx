@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { act, useState } from 'react';
 import './RunwayCard.css';
 import planeFuelLow from '../assets/plane-fuel-low.png';
 import planeFuelLowMid from '../assets/plane-fuel-lowmid.png';
@@ -8,9 +8,10 @@ import planeFuelHigh from '../assets/plane-fuel-high.png';
 import { useSimulation } from '../context/SimulationContext';
 
 
+// --- Configuration ---
 
 // This map defines the colors for different modes.
-
+// You can add more modes and colors here.
 const colorMap = {
   'Take-off': '#96711E',
   'Landing': '#265EA8',
@@ -19,27 +20,34 @@ const colorMap = {
   'default': '#A0A0A0' // Fallback color
 };
 
-// Statuses that mean the runway is actively usable (colored by mode)
-// Using lowercase for case-insensitive matching
-const ACTIVE_STATUSES = ['available', 'runway in use'];
-
 // --- Main Component ---
 
 export default function RunwayCard({
   runwayID,
   runwayName = "runway 1",
   callSign = "N/A",
-  fuelLevel = 60,
+  fuelLevel = 20,
+  defaultRemainingTime = 0,
   initialMode = "Mixed",
-  initialStatus = "Available",
+  initialStatus = "AVAILABLE",
   hoverInfo = "No flight details available." // Content for the hover box
 }) {
   const { activeSim, updateRunway } = useSimulation();
   // Read mode/status FROM CONTEXT instead of local state
   const runway = activeSim?.runways.find(r => r.id === runwayID);
+
+  console.log("Runway from context:", runway);
+  console.log("RunwayID prop:", runwayID);
+  console.log("ActiveSim runways:", activeSim?.runways);
+
+
   const mode = runway?.mode || initialMode;
   const status = runway?.status || initialStatus;
+  // const remainingTime = runway?.remainingTime || defaultRemainingTime;   -- We can add runway progress updates and fuel updates to be separate. 
 
+  const plane = runway?.plane;
+  const fuelMinutes = plane ? Math.floor(plane._fuel_seconds / 60) : null;
+  
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
   const handleStatusChange = (e) => updateRunway(runwayID, { status: e.target.value });
@@ -57,11 +65,9 @@ export default function RunwayCard({
 
   const currentPlaneImg = getFuelImage(fuelLevel);
 
-  const isPlaying = activeSim?.playState === "playing";
-
-  // Determine color: active statuses get colored by mode, everything else is grey
-  const isActive = ACTIVE_STATUSES.includes(status.toLowerCase());
-  const activeColor = isActive
+  // 2. Create a "Live Color" variable 
+  // This logic runs every time the component renders
+  const activeColor = status === 'AVAILABLE'
     ? (colorMap[mode] || colorMap['default'])
     : colorMap['Unavailable'];
 
@@ -99,13 +105,13 @@ export default function RunwayCard({
           </div>
         </div>
 
-        {/* 3. The Dropdowns */}
+        {/* 3. The Dropdowns) */}
         <div className="runway-controls">
 
           {/* Mode Dropdown */}
           <div className="control-group">
             <label>MODE</label>
-            <select value={mode} onChange={handleModeChange} disabled={isPlaying}>
+            <select value={mode} onChange={handleModeChange}>
               <option value="Take-off">Take-off</option>
               <option value="Landing">Landing</option>
               <option value="Mixed">Mixed</option>
@@ -115,8 +121,8 @@ export default function RunwayCard({
           {/* Status Dropdown */}
           <div className="control-group">
             <label>STATUS</label>
-            <select value={status} onChange={handleStatusChange} disabled={isPlaying}>
-              <option value="Available">AVAILABLE</option>
+            <select value={status} onChange={handleStatusChange}>
+              <option value="AVAILABLE">AVAILABLE</option>
               <option value="Runway in use">IN USE</option>
               <option value="Runway Inspection">Runway Inspection</option>
               <option value="Snow Clearance">Snow Clearance</option>
@@ -131,7 +137,19 @@ export default function RunwayCard({
         {/* Since data comes from the backend, this box will grow to fit it */}
         <div className="hover-content">
           <strong>Flight Details:</strong>
-          <p>{hoverInfo || "Could not load data."}</p>
+          {plane ? (
+            <>
+              <div><strong>Callsign:</strong> {plane.callsign}</div>
+              <div><strong>Operator:</strong> {plane.operator}</div>
+              <div><strong>Route:</strong> {plane.origin} → {plane.destination}</div>
+              <div><strong>Altitude:</strong> {Math.round(plane._altitude)} ft</div>
+              <div><strong>Speed:</strong> {Math.round(plane._ground_speed)} kts</div>
+              <div><strong>Fuel:</strong> {Math.floor(plane._fuel_seconds / 60)} min</div>
+              <div><strong>Emergency:</strong> {plane._emergency ? "YES 🚨" : "No"}</div>
+            </>
+          ) : (
+            <p>No aircraft on runway</p>
+          )}
         </div>
       </div>
     </div>

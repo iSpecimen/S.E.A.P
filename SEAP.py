@@ -7,6 +7,7 @@
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import json
 
 from SimSys.SimulatorControls.SystemController import SystemController
@@ -48,12 +49,11 @@ async def startNewSimulation(request: Request):
 
     #Tries to run a simulation; raises an error if it fails
     try:
-        logPath = controller.start_sim(runwayConfig)
+        logPath = controller.start_sim(runwayConfig, inboundFlow, outboundFlow)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
-
-    major, minor= controller.current_focus
+    major, minor= controller.get_current_focus()
 
     return {
         "major": major,
@@ -72,18 +72,15 @@ async def startNewSimulation(request: Request):
 # GET /api/state/{major}/{minor}
 
 @app.get("/api/state/{major}/{minor}")
-def getFullState(major: int, minor:int):
-    #Returns the full state log as a JSON array
-    #Frontend stores this in memory, indexes stateLog[tick] as timeline plays
+def getFullState(major: int, minor: int):
 
-    sim=getSimulation(major, minor)
-    
-    try:
-        rawJson= sim._logger.get_state_logs_as_json() #DONT USE THISSSSS
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    
-    return json.loads(rawJson)
+    file_path, file_name = controller.load_sim((major, minor))
+
+    with open(file_path, "r") as f:
+        data = json.load(f)
+        
+    print(file_path)
+    return data 
 
 #Returns final aggregated statistics for a completed simulation
 @app.get("/api/stats/{major}/{minor}")
@@ -141,7 +138,45 @@ def list_simulations():
     
     return versions
 
+# GET /api/newsim/{major}/{minor}
+# For Runway Configuration Changes, create a new sim based on current sim.
+# For creating new sims based on old configs. 
+@app.get("/api/newsim/{major}/{minor}")
+async def create_sim_copy(major: int, minor: int, request: Request):
     
+    body = await request.json()
+
+    # Runway mode/status list from UI
+    # Example: [{"runway_id":0,"mode":"ARRIVAL","status":"OPEN"}, ...]
+    runwayChanges = body.get("runway_changes", [])
+
+    try:
+        logPath = controller.change_runway_config(
+            version=(major, minor),
+            changes=runwayChanges
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Simulation failed: {str(e)}"
+        )
+
+    major, minor = controller.get_current_focus()
+    num_runways, inbound, outbound = controller.get_sim_details((major,minor))
+    
+    return {
+        "major": major,
+        "minor": minor,
+        "version": f"{major}.{minor}",
+        "log_file_path": logPath,
+        "config": {
+            "num_runways":num_runways,
+            "inbound_flow": inbound,
+            "outbound_flow": outbound
+        }
+    }
+
+
 
 
 #-------------HELPER FUNCTIONS-----------------------------------

@@ -43,7 +43,7 @@ const createSimState = (config = {}) => ({
     timelineSec: 0,
     playState: "paused",
 
-}
+    }
 
 );
 
@@ -58,9 +58,10 @@ function frameToComponentState(frame) {
         name: `Runway ${index + 1}`,
         mode: r.mode,
         status: r.status,
-        callsign: r.callsigns,
+        callsign: r.plane?.callsign,
         bearing: r.bearing,
         expectedFreeTime: r.expected_free_time,
+        plane: r.plane,
     }));
 
     // Takeoff Queue 
