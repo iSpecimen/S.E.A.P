@@ -176,6 +176,29 @@ async def create_sim_copy(major: int, minor: int, request: Request):
         }
     }
 
+# GET /api/copysim/{major}/{minor}
+# For when a new tab is made on the front end.
+# For creating copies of old sims, to later be changed. 
+@app.get("/api/newsim/{major}/{minor}")
+async def create_sim_copy(major: int, minor: int):
+    try:
+        controller.duplicate_simulation(
+            major=major,
+            minor=minor
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Simulation failed: {str(e)}"
+        )
+
+    major, minor = controller.get_current_focus()
+    
+    return {
+        "major": major,
+        "minor": minor,
+        "version": f"{major}.{minor}",
+    }
 
 
 
