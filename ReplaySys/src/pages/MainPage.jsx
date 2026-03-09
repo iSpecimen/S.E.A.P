@@ -19,17 +19,36 @@ const MainPage = () => {
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
-    //ERROR HANDLING
-    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
-    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
-    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
-
     // Fallbacks while no simulation is loaded
     const runways = activeSim?.runways || [];
     const takeoffQueue = activeSim?.takeoffQueue || [];
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
+
+    const [maxWaitConfig, setMaxWaitConfig] = useState({
+        maxWaitTakeoff: 30,
+        maxWaitHolding: 30
+    });
+
+    // BACKEND HOOK: replace body with context call e.g. updateMaxWait(newConfig)
+    const handlemaxWaitConfigChange = (newConfig) => {
+    setMaxWaitConfig(newConfig);
+    };
+
+    // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
+    const handleEmergencyToggle = (callsign, newState) => {
+    const updateList = (list) =>
+        list.map(f => f.callsign === callsign ? { ...f, isEmergency: newState } : f);
+    setTakeoffFlights(prev => updateList(prev));
+    setHoldingFlights(prev => updateList(prev));
+    };
+
+
+    //ERROR HANDLING
+    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
+    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
+    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
     return (
         <div className="mainPage">
@@ -47,8 +66,14 @@ const MainPage = () => {
             <div className="mainBody">
                 {/*Left Side*/}
                 <div className="leftSidebar">
-                    <TakeoffQueue flights={takeoffQueue} />
-                    <HoldingPattern flights={holdingPattern} />
+                    <TakeoffQueue 
+                        flights={takeoffQueue}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
+                    <HoldingPattern 
+                        flights={holdingPattern}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
                 </div>
 
 
@@ -98,18 +123,18 @@ const MainPage = () => {
 
                     </div>
                     <div className="Statistics">
-                        <div className="Statistics">
-                            <Statistics
-                                maxInTakeoff={statistics.max_tqueue_size}
-                                maxInHolding={statistics.max_hqueue_size}
-                                avgWaitTakeoff={statistics.avg_tqueue_wait}
-                                avgWaitHolding={statistics.avg_hqueue_wait}
-                                avgDelayTakeoff={statistics.avg_tqueue_delay}
-                                avgDelayArrival={statistics.avg_hqueue_delay}
-                                maxDelayTakeoff={statistics.max_tqueue_delay}
-                                maxDelayHolding={statistics.max_hqueue_delay}
-                            />
-                        </div>
+                        <Statistics
+                            maxWaitConfig={maxWaitConfig} 
+                            onMaxWaitConfigChange={handlemaxWaitConfigChange}
+                            maxInTakeoff={statistics.max_tqueue_size}
+                            maxInHolding={statistics.max_hqueue_size}
+                            avgWaitTakeoff={statistics.avg_tqueue_wait}
+                            avgWaitHolding={statistics.avg_hqueue_wait}
+                            avgDelayTakeoff={statistics.avg_tqueue_delay}
+                            avgDelayArrival={statistics.avg_hqueue_delay}
+                            maxDelayTakeoff={statistics.max_tqueue_delay}
+                            maxDelayHolding={statistics.max_hqueue_delay}
+                        />
                     </div>
                 </section>
 
