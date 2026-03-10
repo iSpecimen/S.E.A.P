@@ -170,3 +170,29 @@
   min-height: 60px;
   
 }
+
+
+
+.commitChangesBtn {
+    position: relative;
+    z-index: 10;
+    margin: 0.5rem auto;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #265EA8;
+    color: white;
+    transition: opacity 0.2s;
+}
+
+.commitChangesBtn:disabled {
+    background-color: #A0A0A0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.commitChangesBtn:not(:disabled):hover {
+    opacity: 0.85;
+}
