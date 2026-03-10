@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 import uuid
 
-DELETE_LOGS : bool = True #Set to False to keep the logs after the simulation has ran
+DELETE_LOGS : bool = False #Set to False to keep the logs after the simulation has ran
 
 class Logger:
     def __init__(self, sim_name: str):  # Added sim_name str for multi-sim handling, "1.0, 1.1, 2.0.. etc"
@@ -29,10 +29,12 @@ class Logger:
         
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
-        
-        self._file_path = log_dir / f"state_{self.run_id}.jsonl"
+        self._file_name = f"state_{self.run_id}.jsonl"
+        self._file_path = log_dir / self._file_name
         self._file__path_event = log_dir / f"event_{self.run_id}.jsonl"
-        self._file_log = Path(self._file_path).open("wb")
+        self._file_log = Path(self._file_path).open("w", encoding="utf-8")
+        self._file_log.write("[")
+        self._first_entry = True
         self._file_event = Path(self._file__path_event).open("wb")
 
         self._log_index : list = [0] * 60*60*24
@@ -40,6 +42,9 @@ class Logger:
         self._last_logged_tick: int = -1
         self._dumps = json.dumps
 
+    def get_file_data(self) -> tuple[str, str]: # Ati - I don't to break encapsulation, so added public getter for log file data.
+        return (self._file_path, self._file_name)
+    
     def _queue_planes_as_dicts(self, q):
         rows = [self.__plane_get(p) for p in q.getNodeAsList(10)]
         return self.rows_to_dicts(self.__plane_schema, rows)
@@ -85,9 +90,13 @@ class Logger:
             "runways": self.rows_to_dicts(self.__runwaySchema, runway_rows)
         }
 
-        encoded_line = self._dumps(payload, separators=(",", ":")).encode("utf-8") + b"\n"
-        self._file_log.write(encoded_line)
-        self._log_offset += len(encoded_line)
+        json_obj = self._dumps(payload, separators=(",", ":"))
+
+        if not self._first_entry:
+            self._file_log.write(f",\n")
+
+        self._file_log.write(json_obj)
+        self._first_entry = False
         self._last_logged_tick = tick
 
     def add_event_log(self, tick: int, log: str) -> None:
@@ -152,6 +161,11 @@ class Logger:
             lines = [line for line in data.decode("utf-8").splitlines() if line]
             return "[" + ",".join(lines) + "]"
         
+    def finalize(self):
+        self._file_log.write("]")
+        self._file_log.close()
+        self._file_event.close()
+
     def clear_log_file(self) -> None:
         if DELETE_LOGS:
             if self._file_path.exists():

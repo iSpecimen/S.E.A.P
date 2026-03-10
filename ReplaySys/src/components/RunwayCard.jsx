@@ -26,7 +26,8 @@ export default function RunwayCard({
   runwayID,
   runwayName = "runway 1",
   callSign = "N/A",
-  fuelLevel = 60,
+  fuelLevel = 20,
+  defaultRemainingTime = 0,
   initialMode = "Mixed",
   initialStatus = "AVAILABLE",
   hoverInfo = "No flight details available." // Content for the hover box
@@ -34,9 +35,19 @@ export default function RunwayCard({
   const { activeSim, updateRunway } = useSimulation();
   // Read mode/status FROM CONTEXT instead of local state
   const runway = activeSim?.runways.find(r => r.id === runwayID);
-  const mode = runway?.mode || "Mixed";
-  const status = runway?.status || "AVAILABLE";
 
+  console.log("Runway from context:", runway);
+  console.log("RunwayID prop:", runwayID);
+  console.log("ActiveSim runways:", activeSim?.runways);
+
+
+  const mode = runway?.mode || initialMode;
+  const status = runway?.status || initialStatus;
+  // const remainingTime = runway?.remainingTime || defaultRemainingTime;   -- We can add runway progress updates and fuel updates to be separate. 
+
+  const plane = runway?.plane;
+  const fuelMinutes = plane ? Math.floor(plane._fuel_seconds / 60) : null;
+  
   // Write changes TO CONTEXT instead of local state
   const handleModeChange = (e) => updateRunway(runwayID, { mode: e.target.value });
   const handleStatusChange = (e) => updateRunway(runwayID, { status: e.target.value });
@@ -112,6 +123,7 @@ export default function RunwayCard({
             <label>STATUS</label>
             <select value={status} onChange={handleStatusChange}>
               <option value="AVAILABLE">AVAILABLE</option>
+              <option value="Runway in use">IN USE</option>
               <option value="Runway Inspection">Runway Inspection</option>
               <option value="Snow Clearance">Snow Clearance</option>
               <option value="Equipment Failure">Equipment Failure</option>
@@ -125,7 +137,19 @@ export default function RunwayCard({
         {/* Since data comes from the backend, this box will grow to fit it */}
         <div className="hover-content">
           <strong>Flight Details:</strong>
-          <p>{hoverInfo || "Could not load data."}</p>
+          {plane ? (
+            <>
+              <div><strong>Callsign:</strong> {plane.callsign}</div>
+              <div><strong>Operator:</strong> {plane.operator}</div>
+              <div><strong>Route:</strong> {plane.origin} → {plane.destination}</div>
+              <div><strong>Altitude:</strong> {Math.round(plane._altitude)} ft</div>
+              <div><strong>Speed:</strong> {Math.round(plane._ground_speed)} kts</div>
+              <div><strong>Fuel:</strong> {Math.floor(plane._fuel_seconds / 60)} min</div>
+              <div><strong>Emergency:</strong> {plane._emergency ? "YES 🚨" : "No"}</div>
+            </>
+          ) : (
+            <p>No aircraft on runway</p>
+          )}
         </div>
       </div>
     </div>

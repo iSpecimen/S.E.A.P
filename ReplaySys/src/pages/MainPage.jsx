@@ -13,24 +13,16 @@ import { useSimulation } from "../context/SimulationContext";
 
 // Declaring functional component const
 const MainPage = () => {
-    const [takeoffFlights, setTakeoffFlights] = useState([
-        { callsign: 'MX123', destination: 'LONDON', time: '12:45' },
-        { callsign: 'UA990', destination: 'NEW YORK', time: '13:10' },
-        { callsign: 'AF442', destination: 'PARIS', time: '13:25' },
-        { callsign: 'LH101', destination: 'BERLIN', time: '13:40' },
-    ]);
-
-    // Mock data for the Holding Pattern
-    const [holdingFlights, setHoldingFlights] = useState([
-        { callsign: 'CS261', origin: 'LISBON', time: '06:50' },
-        { callsign: 'QA332', origin: 'DOHA', time: '07:15' },
-    ]);
+    //Reading from context
+    const { activeSim, seekToTick } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
-
-    const { activeSim, togglePlayPause } = useSimulation();
+    //ERROR HANDLING
+    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
+    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
+    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
     // Fallbacks while no simulation is loaded
     const runways = activeSim?.runways || [];
@@ -38,6 +30,7 @@ const MainPage = () => {
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
+
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
@@ -49,12 +42,13 @@ const MainPage = () => {
                 />
 
             </header>
+
             {/*Main Content*/}
             <div className="mainBody">
                 {/*Left Side*/}
                 <div className="leftSidebar">
-                    <TakeoffQueue flights={takeoffFlights} />
-                    <HoldingPattern flights={holdingFlights} />
+                    <TakeoffQueue flights={takeoffQueue} />
+                    <HoldingPattern flights={holdingPattern} />
                 </div>
 
 
@@ -67,13 +61,19 @@ const MainPage = () => {
                                 key={rw.id}
                                 runwayID={rw.id}
                                 runwayName={rw.name}
+                                callSign={rw.callsign || "N/A"}
                                 initialMode={rw.mode}
                                 initialStatus={rw.status}
                             />))}
                     </div>
+                    {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
+                    We pass seekToTick as that callback.
+                    seekToTick indexes into stateLog[newSecond] and
+                    updates runways/takeoffQueue/holdingPattern,
+                    which causes all the components above to re-render with the correct data for that second. */}
                     <div className="timeline">
                         <Timeline
-                            onTimeChange={(sec) => console.log("Time:", sec)}
+                            onTimeChange={seekToTick}
                             onPlayStateChange={(playing) => console.log("Playing:", playing)}
                         />
 
@@ -83,21 +83,18 @@ const MainPage = () => {
                 {/*Right Side*/}
                 <section className="rightSidebar">
                     <div className="Cancellations">
-                        <Cancellations events={[
-                            { id: 1, type: "diversion", callsign: "AB123", message: "FLIGHT AB123 HAS TO BE DIVERTED TO..." },
-                            { id: 2, type: "cancellation", callsign: "CD7363", message: "FLIGHT CD7363 HAS TO BE CANCELLED" },
-                        ]} />
+                        <Cancellations events={activeSim?.cancellations || []}></Cancellations>
 
                     </div>
                     <div className="Statistics">
                         <div className="Statistics">
                             <Statistics
-                                maxInTakeoff={38}
-                                maxInHolding={44}
-                                maxWaitTakeoff={40}
-                                maxWaitHolding={10}
-                                avgDelayTakeoff={null}
-                                avgDelayArrival={null}
+                                maxInTakeoff={statistics.max_tqueue_size}
+                                maxInHolding={statistics.max_hqueue_size}
+                                maxWaitTakeoff={statistics.max_tqueue_wait}
+                                maxWaitHolding={statistics.max_hqueue_wait}
+                                avgDelayTakeoff={statistics.avg_tqueue_delay}
+                                avgDelayArrival={statistics.avg_hqueue_delay}
                             />
                         </div>
                     </div>
@@ -109,15 +106,27 @@ const MainPage = () => {
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
-                        <ArrivalsDepartures
-                            departures={[
-                                { id: 1, callsign: "MX123", destination: "LONDON", time: "12:45" },
-                            ]}
-                            arrivals={[
-                                { id: 1, callsign: "CS261", origin: "LISBON", time: "06:50" },
-                            ]}
-                        />
 
+                        <ArrivalsDepartures
+                            departures={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin === "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    destination: p.destination,
+                                    time: p.time,
+                                }))}
+                            arrivals={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin !== "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    origin: p.origin,
+                                    time: p.time,
+                                }))}
+                        />
                     </div>
                 </aside>
             </div>

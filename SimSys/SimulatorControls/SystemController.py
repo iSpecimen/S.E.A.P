@@ -13,7 +13,22 @@ class SystemController():
         # (minor) "x.0, x.1, x.2..."
         self.current_focus: tuple[int,int] = (1,0)
         self.default_runway_config = {0: ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]}
-    
+
+    def get_sim_details(self, version: tuple[int, int]):
+        maj, mir = version
+        try:
+            target_sim: Simulation = self.sim_majors[maj][mir]
+        except KeyError:
+            raise KeyError(f"Simulation version {maj}.{mir} does not exist. Cannot Change Config for non-existent sim")
+        
+        adapted_schedule = target_sim.runway_config_schedule
+        runway_count = 0
+        for i in range(0,9):
+            if adapted_schedule[0][i] != None:
+                runway_count+=1 
+        inbound, outbound = target_sim.inbound_outbound()
+        return runway_count, inbound, outbound 
+
     def create_runway_map(self, runway_configuration: tuple[int, int, int]):
         tf, mx, ld = runway_configuration
         runway = (
@@ -24,7 +39,10 @@ class SystemController():
         runway += [None] * (10 - len(runway))
         return {0: runway} # Big question, does there need to be None Runways? 
     
-    def load_sim(self, sim_version: tuple[int, int]) -> str: # Changing Tabs
+    def get_current_focus(self):
+        return self.current_focus
+    
+    def load_sim(self, sim_version: tuple[int, int]) -> tuple[str, str]: # Changing Tab focus to new sim. Will return file_path and file_name
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet.")
         
@@ -35,9 +53,9 @@ class SystemController():
             raise KeyError(f"Simulation version {major}.{minor} does not exist.")
         
         # Return the json log file path
-        return str(target_sim._logger._file_path)
+        return target_sim.get_state_log()
 
-    def start_sim(self, runway_configuration: tuple[int, int, int] | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
+    def start_sim(self, runway_configuration: tuple[int, int, int] | None = None, inbound_flow: int | None = None, outbound_flow: int | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
         # runway_configuration = [takeoff, mixed, landing]
         
         # Since it's a new major version make a new dict
@@ -47,11 +65,11 @@ class SystemController():
         else:
             runwaymap = self.create_runway_map(runway_configuration)
         if not self.sim_majors: # First time = main menu start
-            new_sim_minor[0] = Simulation("1.0", runwaymap)
+            new_sim_minor[0] = Simulation("1.0", runwaymap, inbound_flow, outbound_flow)
             self.sim_majors[1] = new_sim_minor # Add to sim_majors dict
         else:
             newest_major: int = len(self.sim_majors)+1
-            new_sim_minor[0] = Simulation(f"{newest_major}.0", runwaymap)
+            new_sim_minor[0] = Simulation(f"{newest_major}.0", runwaymap, inbound_flow, outbound_flow)
             self.sim_majors[newest_major] = new_sim_minor
             self.current_focus = (newest_major, 0)
 
@@ -60,35 +78,64 @@ class SystemController():
         # Returns json file path
 
 
-    def change_runway_config(self, tick: int, runway_num: int, newmode: str) -> str: # Creating Sim. Copies, x.1, x.2s and x.3s etc
+    def change_runway_config(self, version: tuple[int, int], changes: list[tuple[int,int,str]]) -> str : # Creating Sim. Copies, x.1, x.2s and x.3s etc
+
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
-        maj, mir = self.current_focus
+        
+        maj, mir = version
         try:
             target_sim: Simulation = self.sim_majors[maj][mir]
         except KeyError:
             raise KeyError(f"Simulation version {maj}.{mir} does not exist. Cannot Change Config for non-existent sim")
+        
         newest_minor = len(self.sim_majors[maj])
+
         adapted_schedule = target_sim.runway_config_schedule
-        if adapted_schedule[0][runway_num-1] == newmode:
-            raise KeyError (f"Runway Config is already set to this.")
-        else:
-            adapted_schedule[0][runway_num-1] = newmode
-            finalconfig = {0: target_sim.runway_config_schedule[0]}
-            finalconfig[tick] = adapted_schedule[0]
-        newSim = Simulation(f"{maj}.{newest_minor}", finalconfig)
+        inbound, outbound = target_sim.inbound_outbound()
+        finalconfig = {0: target_sim.runway_config_schedule[0]}
+        for i in range(len(changes)):
+            tick, runway_num, newmode = changes # Grab the changes from the input, and iterate through all changes. 
+
+            if adapted_schedule[0][runway_num-1] == newmode: # If there's not change then 
+                raise KeyError (f"Runway {runway_num} Config is already set to this.")
+            else:
+                adapted_schedule[0][runway_num-1] = newmode
+                finalconfig[tick] = adapted_schedule[0]
+
+        newSim = Simulation(f"{maj}.{newest_minor}", finalconfig, inbound, outbound)
         self.sim_majors[maj][newest_minor] = newSim
         self.current_focus = (maj, newest_minor)
         newSim.run()
  
-        return self.load_sim(self.current_focus) 
+        return self.load_sim(self.current_focus)
         # Returns json file path
         pass
+
+    def duplicate_simulation(self, major: int, minor: int):
+        if not self.sim_majors:
+            raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
+        
+        try:
+            target_sim: Simulation = self.sim_majors[major][minor]
+        except KeyError:
+            raise KeyError(f"Simulation version {major}.{minor} does not exist. Cannot copy sim for non-existent sim")
+        
+        newest_minor = len(self.sim_majors[major])
+        target_sim_r_config = target_sim.runway_config_schedule
+        inbound, outbound = target_sim.inbound_outbound()
+        newSim = Simulation("f{major}.{newest_minor}", target_sim_r_config, inbound, outbound)
+        self.sim_majors[major][newest_minor] = newSim
+        self.current_focus = (major, newest_minor)
+
+        # Essentially, we don't need to waste time rerunning the sim we've already ran, and also, when you make a sim copy, you're basically about to make changes to it.
+        # Does not return anything, just the front end letting the backend know that there's a sim tab. 
+        return True
 
     
 if __name__ == "__main__": # When debugging/testing this file, it will try create 2 fresh sims. 1.0 and 2.0
     sysCtrl = SystemController()
     print(sysCtrl.start_sim((3,3,3)))  # No parameters should mean it takes a default config. 
-    print(sysCtrl.change_runway_config(1000, 2, "Landing"))
+    print(sysCtrl.change_runway_config((1,0),[(100, 2, "Landing"), (102, 2, "Takeoff"), (104, 2, "Mixed")]))
 
 

@@ -152,7 +152,7 @@
 }
 
 .cancellationsCounter:first-child {
-  border-right: 1px solid #0e0d0d;
+  border-right: 1px solid #ffffff;
 }
 
 .cancellationsCounterLabel {
@@ -160,7 +160,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #0e0d0d;
+  color: #ffffff;
 }
 
 .cancellationsCounterValue {
@@ -171,9 +171,9 @@
 }
 
 .cancellationsCounterValueCancel {
-  color: #0e0d0d;
+  color: #ffffff;
 }
 
 .cancellationsCounterValueDivert {
-  color: #0e0d0d;
+  color: #ffffff;
 }
