@@ -141,13 +141,8 @@ class Simulation:
                 if r is not None:
                     r.tick_update(t, self)
 
-            avg_tq_wait = (self.tqueue_wait_times_sum / self.tqueue_processed) if self.tqueue_processed else 0
-            avg_tq_del = (self.tqueue_delay_sum / self.tqueue_processed) if self.tqueue_processed else 0
-            avg_hq_wait = (self.hqueue_wait_times_sum / self.hqueue_processed) if self.hqueue_processed else 0
-            avg_hq_del = (self.hqueue_delay_sum / self.hqueue_processed) if self.hqueue_processed else 0
-
             active_runways = [r for r in self.runways if r is not None]
-            self._logger.add_state_log(t, self.hqueue, self.tqueue, active_runways, self.max_tqueue_size, self.max_hqueue_size, avg_tq_wait, avg_tq_del, avg_hq_wait, avg_hq_del)
+            self._logger.add_state_log(t, self.hqueue, self.tqueue, active_runways)
                 
         self.print_statistics()
 
