@@ -141,7 +141,7 @@ def list_simulations():
 # GET /api/newsim/{major}/{minor}
 # For Runway Configuration Changes, create a new sim based on current sim.
 # For creating new sims based on old configs. 
-@app.get("/api/newsim/{major}/{minor}")
+@app.post("/api/newsim/{major}/{minor}")
 async def create_sim_copy(major: int, minor: int, request: Request):
     
     body = await request.json()
@@ -149,11 +149,13 @@ async def create_sim_copy(major: int, minor: int, request: Request):
     # Runway mode/status list from UI
     # Example: [{"runway_id":0,"mode":"ARRIVAL","status":"OPEN"}, ...]
     runwayChanges = body.get("runway_changes", [])
-
+    print(f"RUNWAY CHANGES FROM FRONTEND: {runwayChanges}")
+    planeChanges = body.get("plane_changes", [])
     try:
         logPath = controller.change_runway_config(
             version=(major, minor),
-            changes=runwayChanges
+            r_changes=runwayChanges,
+            p_changes=planeChanges
         )
     except Exception as e:
         raise HTTPException(
@@ -179,7 +181,7 @@ async def create_sim_copy(major: int, minor: int, request: Request):
 # GET /api/copysim/{major}/{minor}
 # For when a new tab is made on the front end.
 # For creating copies of old sims, to later be changed. 
-@app.get("/api/newsim/{major}/{minor}")
+@app.post("/api/copysim/{major}/{minor}")
 async def create_sim_copy(major: int, minor: int):
     try:
         controller.duplicate_simulation(

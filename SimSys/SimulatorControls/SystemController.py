@@ -23,10 +23,10 @@ class SystemController():
         except KeyError:
             raise KeyError(f"Simulation version {maj}.{mir} does not exist. Cannot Change Config for non-existent sim")
         
-        adapted_schedule = target_sim.runway_config_schedule
+        adapted_schedule = target_sim.user_config_schedule[0].runways
         runway_count = 0
         for i in range(0,9):
-            if adapted_schedule[0][i] != None:
+            if adapted_schedule[i] != None:
                 runway_count+=1 
         inbound, outbound = target_sim.inbound_outbound()
         return runway_count, inbound, outbound 
@@ -144,9 +144,9 @@ class SystemController():
             raise KeyError(f"Simulation version {major}.{minor} does not exist. Cannot copy sim for non-existent sim")
         
         newest_minor = len(self.sim_majors[major])
-        target_sim_r_config = target_sim.runway_config_schedule
+        target_sim_user_config = target_sim.user_config_schedule
         inbound, outbound = target_sim.inbound_outbound()
-        newSim = Simulation("f{major}.{newest_minor}", target_sim_r_config, inbound, outbound)
+        newSim = Simulation("f{major}.{newest_minor}", target_sim_user_config, inbound, outbound)
         self.sim_majors[major][newest_minor] = newSim
         self.current_focus = (major, newest_minor)
 
@@ -160,6 +160,8 @@ if __name__ == "__main__": # When debugging/testing this file, it will try creat
     testrunwaychanges = [(100, 2, "Landing"), (102, 2, "Takeoff"), (104, 2, "Mixed")]
     testemergency = "Not Implemented, no idea what callsigns exist currently."
     print(sysCtrl.start_sim((3,3,3)))  # No parameters should mean it takes a default config. 
+    runwayCount, inbound, outbound = sysCtrl.get_sim_details((1,0))
+    print(f"Sim 1.0 details: {runwayCount} Runways, {inbound} Inbound Flow, {outbound} Outbound Flow")
     print(sysCtrl.change_runway_config((1,0),testrunwaychanges, None))
 
 
