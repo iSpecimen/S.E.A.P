@@ -13,8 +13,11 @@ import { useSimulation } from "../context/SimulationContext";
 
 // Declaring functional component const
 const MainPage = () => {
+    const ctx = useSimulation();
+    console.log("ALL CONTEXT KEYS:", Object.keys(ctx));
+    console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
     //Reading from context
-    const { activeSim, seekToTick } = useSimulation();
+    const { activeSim, seekToTick, commitRunwayChanges } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
@@ -30,7 +33,8 @@ const MainPage = () => {
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
-
+    console.log("playState:", activeSim?.playState);
+    console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
@@ -65,6 +69,20 @@ const MainPage = () => {
                                 initialMode={rw.mode}
                                 initialStatus={rw.status}
                             />))}
+                    </div>
+                    {/* New commit button */}
+                    {/* In MainPage.jsx, replace the bare button with: */}
+                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                        <button
+                            className="commitChangesBtn"
+                            disabled={activeSim?.playState === "playing"}
+                            onClick={() => {
+                                console.log("BUTTON CLICKED");
+                                commitRunwayChanges();
+                            }}
+                        >
+                            Commit Changes
+                        </button>
                     </div>
                     {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
                     We pass seekToTick as that callback.
