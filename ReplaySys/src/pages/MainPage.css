@@ -214,7 +214,8 @@
     border: 1px solid #d1d9e0;
     font-style: italic;
 }
-/* Add this to your CSS */
+
+
 .loading::before {
     content: "";
     width: 18px;
@@ -229,13 +230,14 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
 /* Error State */
 .error {
     background-color: #fff1f0;
     color: #cf1322;
     border: 1px solid #ffa39e;
     font-weight: bold;
-
+}
 
 .commitChangesBtn {
     position: relative;
