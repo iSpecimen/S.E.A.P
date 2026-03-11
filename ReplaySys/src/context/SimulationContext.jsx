@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, useRef } from "react";
 
-import { startSimulation, fetchFullState, fetchStatistics } from "../services/api";
+import { startSimulation, changeSimulation, fetchFullState, fetchStatistics } from "../services/api";
 //Context creates a shared data layer that both components can read and write to
 // SimTab tells context to "switch to tab X" and MainPage reads context to get tab X's data
 // createContext makes a container a child component can tap into
@@ -43,7 +43,7 @@ const createSimState = (config = {}) => ({
     timelineSec: 0,
     playState: "paused",
 
-    }
+}
 
 );
 
@@ -69,6 +69,7 @@ function frameToComponentState(frame) {
     const takeoffQueue = (frame.TakeoffQueue?.planes || []).map(mapPlane);
 
 
+
     //Holding Pattern
     // Maps the frame with the holding pattern planes to an array of plane dictionaries
     const holdingPattern = (frame.HoldingQueue?.planes || []).map(mapPlane);
@@ -78,10 +79,10 @@ function frameToComponentState(frame) {
 }
 
 function formatSecondsToTime(totalSeconds) {
-  if (totalSeconds == null) return "--:--";
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    if (totalSeconds == null) return "--:--";
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 
@@ -101,6 +102,9 @@ function mapPlane(plane) {
         emergency: plane._emergency,
     };
 }
+
+
+
 
 
 //Wrapper component that holds all the simulation data
@@ -295,6 +299,75 @@ export function SimulationProvider({ children }) {
         }));
     }, [activeTabID]);
 
+
+    const commitRunwayChanges = useCallback(async () => {
+        console.log("commitRunwayChanges called");
+        console.log("activeTabID:", activeTabID);
+        console.log("sim:", simulations[activeTabID]);
+        if (!activeTabID) return;
+        const sim = simulations[activeTabID];
+        if (sim?.major == null || sim?.minor == null) return;
+
+        const runway_config = sim.runways.map((r) => ({
+            mode: r.mode,
+            status: r.status,
+            bearing: r.bearing ?? 90,
+            number: r.number ?? 1,
+        }));
+
+        try {
+            const { major, minor, version } = await changeSimulation({
+                major: sim.major,
+                minor: sim.minor,
+                runway_config,
+            });
+
+            const [stateLog, statistics] = await Promise.all([
+                fetchFullState(major, minor),
+                fetchStatistics(major, minor),
+            ]);
+
+            const initialFrame = frameToComponentState(stateLog[0]);
+            const tabID = version;
+
+            setSimulations((prev) => ({
+                ...prev,
+                [tabID]: {
+                    ...prev[activeTabID],
+                    major,
+                    minor,
+                    version,
+                    stateLog,
+                    statistics,
+                    ...initialFrame,
+                    timelineSec: 0,
+                    playState: "paused",
+                    loading: false,
+                    error: null,
+                },
+            }));
+            setActiveTabID(tabID);
+
+            setLabelMap((prev) => {
+                const sourceInfo = prev[activeTabID];
+                if (!sourceInfo) return prev;
+                const rootSimNumber = sourceInfo.simNumber;
+                const existingCopies = Object.values(prev).filter(
+                    (info) => info.simNumber === rootSimNumber && info.copyNumber != null
+                ).length;
+                return {
+                    ...prev,
+                    [tabID]: { simNumber: rootSimNumber, copyNumber: existingCopies + 1 },
+                };
+            });
+        } catch (err) {
+            setSimulations((prev) => ({
+                ...prev,
+                [activeTabID]: { ...prev[activeTabID], error: err.message },
+            }));
+        }
+    }, [activeTabID, simulations]);
+
     //
     // PLAYBACK LOOP
     //
@@ -366,6 +439,7 @@ export function SimulationProvider({ children }) {
         }));
     }, [activeTabID]);
 
+
     // WHAT CAN BE ACCESSED BY WHAT AT A PARTICULAR TIME?
     //  State:
     //    simulations  — the full dictionary of all tabs
@@ -401,9 +475,13 @@ export function SimulationProvider({ children }) {
                 togglePlayPause,
                 seekToTick,
                 updateRunway,
+                commitRunwayChanges,
             }}
         >
             {children}
         </SimulationContext.Provider>
     );
+
+
+
 }

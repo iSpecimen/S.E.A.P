@@ -13,8 +13,11 @@ import { useSimulation } from "../context/SimulationContext";
 
 // Declaring functional component const
 const MainPage = () => {
+    const ctx = useSimulation();
+    console.log("ALL CONTEXT KEYS:", Object.keys(ctx));
+    console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
     //Reading from context
-    const { activeSim, seekToTick } = useSimulation();
+    const { activeSim, seekToTick, commitRunwayChanges } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
@@ -50,6 +53,8 @@ const MainPage = () => {
     if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
     if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
+    console.log("playState:", activeSim?.playState);
+    console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
@@ -110,7 +115,25 @@ const MainPage = () => {
                                 initialStatus={rw.status}
                             />))}
                     </div>
-                    {/* SimulationContext handles everything */}
+                    {/* New commit button */}
+                    {/* In MainPage.jsx, replace the bare button with: */}
+                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                        <button
+                            className="commitChangesBtn"
+                            disabled={activeSim?.playState === "playing"}
+                            onClick={() => {
+                                console.log("BUTTON CLICKED");
+                                commitRunwayChanges();
+                            }}
+                        >
+                            Commit Changes
+                        </button>
+                    </div>
+                    {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
+                    We pass seekToTick as that callback.
+                    seekToTick indexes into stateLog[newSecond] and
+                    updates runways/takeoffQueue/holdingPattern,
+                    which causes all the components above to re-render with the correct data for that second. */}
                     <div className="timeline">
                         <Timeline />
                     </div>
@@ -144,19 +167,26 @@ const MainPage = () => {
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
+
                         <ArrivalsDepartures
-                            departures={takeoffQueue.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                destination: p.destination,
-                                time: p.time,
-                            }))}
-                            arrivals={holdingPattern.map((p, i) => ({
-                                id: i,
-                                callsign: p.callsign,
-                                origin: p.origin,
-                                time: p.time,
-                            }))}
+                            departures={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin === "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    destination: p.destination,
+                                    time: p.time,
+                                }))}
+                            arrivals={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin !== "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    origin: p.origin,
+                                    time: p.time,
+                                }))}
                         />
                     </div>
                 </aside>

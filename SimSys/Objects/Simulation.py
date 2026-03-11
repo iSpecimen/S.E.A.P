@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math as math
+from dataclasses import dataclass
 
 from SimSys.Objects.Plane import Plane
 from .HoldingPatternQueue import HoldingPatternQueue
@@ -9,21 +10,38 @@ from .MixedRunway import MixedRunway
 from .LandingRunway import LandingRunway
 from .Logger import Logger
 
+@dataclass
+class UserConfig:
+    runways: list[str | None] | None = None
+    max_hqueue_size: int | float | None = None
+    max_tqueue_size: int | float | None = None
+    emergency_callsign: list[str | None] | None = None
+
 class Simulation:
-    def __init__(self, sim_name: str, runway_config: dict[int, list[str | None]], inbound_rate: int = 15, outbound_rate: int = 15):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
+    def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
         # Components
         self.sim_name = sim_name
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
         
         # Save the schedule of configuration changes
-        self.runway_config_schedule = runway_config
-        self.inbound_flow = inbound_rate
-        self.outbound_flow = outbound_rate
-        
+        self.user_config_schedule: dict[int, UserConfig]= user_config
+        self.inbound_flow = inbound_rate or 15
+        self.outbound_flow = outbound_rate or 15
         # Initialize runways using the configuration at t=0 (10-slot map)
-        initial_config = self.runway_config_schedule.get(0, [None] * 10)
-        self.runways = self.generate_runway_config(initial_config)
+        initial_config = self.user_config_schedule[0]
+        if initial_config and initial_config.runways is not None:
+            initial_runways = initial_config.runways
+        else:
+            initial_runways = ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]
+        self.runways = self.generate_runway_config(initial_runways)
+        
+        # Apply initial queue limits if present at t=0
+        if initial_config:
+            if initial_config.max_hqueue_size is not None:
+                self.current_max_hqueue = initial_config.max_hqueue_size
+            if initial_config.max_tqueue_size is not None:
+                self.current_max_tqueue = initial_config.max_tqueue_size
         
         self.max_tqueue_size: int = 0
         self.max_hqueue_size: int = 0
@@ -51,7 +69,7 @@ class Simulation:
         self.schedule_departures: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         
         # Dynamic schedule generation
-        self._generate_schedule(inbound_rate, outbound_rate)
+        self._generate_schedule(self.inbound_flow, self.outbound_flow)
 
     def get_state_log(self): # Ati - Just don't want to break encapsulation so added method for getting logger data.
         return self._logger.get_file_data()
@@ -119,17 +137,43 @@ class Simulation:
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):
-            # Check for Runway Config Swap
-            if t > 0 and t in self.runway_config_schedule:
-                self.runways = self.generate_runway_config(self.runway_config_schedule[t])
+            # Check for User Config Updates
+            if t in self.user_config_schedule:
+                config = self.user_config_schedule[t]
+                
+                if config.runways is not None:
+                    self.runways = self.generate_runway_config(config.runways)
+                    
+                if config.max_hqueue_size is not None:
+                    self.current_max_hqueue = config.max_hqueue_size
+                else:
+                    self.current_max_hqueue = 25   # Ati - Sometimes is None, and then next for loop breaks with undefined current
+                    
+                if config.max_tqueue_size is not None:
+                    self.current_max_tqueue = config.max_tqueue_size
+                else:
+                    self.current_max_tqueue = 25
+                    
+                if config.emergency_callsign is not None:
+                    for cllsign in config.emergency_callsign:
+                        for p in self._allPlanes:
+                            if p.callsign == cllsign:
+                                p.declare_emergency()
+                                break
 
             for p in self.schedule_arrivals[t]:
-                p._queue_join_time = t
-                self.hqueue.push(p)
+                if self.hqueue.size >= self.current_max_hqueue:
+                    self.diverted_planes_num += 1
+                else:
+                    p._queue_join_time = t
+                    self.hqueue.push(p)
 
             for p in self.schedule_departures[t]:
-                p._queue_join_time = t
-                self.tqueue.push(p)
+                if self.tqueue.size >= self.current_max_tqueue:
+                    self.cancelled_planes_num += 1
+                else:
+                    p._queue_join_time = t
+                    self.tqueue.push(p)
 
             self.max_tqueue_size = max(self.max_tqueue_size, self.tqueue.size)
             self.max_hqueue_size = max(self.max_hqueue_size, self.hqueue.size)
@@ -141,13 +185,8 @@ class Simulation:
                 if r is not None:
                     r.tick_update(t, self)
 
-            avg_tq_wait = (self.tqueue_wait_times_sum / self.tqueue_processed) if self.tqueue_processed else 0
-            avg_tq_del = (self.tqueue_delay_sum / self.tqueue_processed) if self.tqueue_processed else 0
-            avg_hq_wait = (self.hqueue_wait_times_sum / self.hqueue_processed) if self.hqueue_processed else 0
-            avg_hq_del = (self.hqueue_delay_sum / self.hqueue_processed) if self.hqueue_processed else 0
-
             active_runways = [r for r in self.runways if r is not None]
-            self._logger.add_state_log(t, self.hqueue, self.tqueue, active_runways, self.max_tqueue_size, self.max_hqueue_size, avg_tq_wait, avg_tq_del, avg_hq_wait, avg_hq_del)
+            self._logger.add_state_log(t, self.hqueue, self.tqueue, active_runways)
                 
         self.print_statistics()
 
@@ -184,6 +223,10 @@ class Simulation:
         self._logger.clear_log_file()
 
 if __name__ == "__main__":
-    initial_map = {0: ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]}
+    initial_map = {
+        0: UserConfig(
+            runways=["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]
+        )
+    }
     sim = Simulation("Final_Test", initial_map, inbound_rate=40, outbound_rate=40)
     sim.run()
