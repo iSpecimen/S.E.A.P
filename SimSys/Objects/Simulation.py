@@ -15,7 +15,7 @@ class UserConfig:
     runways: list[str | None] | None = None
     max_hqueue_size: int | float | None = None
     max_tqueue_size: int | float | None = None
-    emergency_callsign: str | None = None
+    emergency_callsign: list[str | None] | None = None
 
 class Simulation:
     def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
@@ -25,12 +25,11 @@ class Simulation:
         self.tqueue = TakeOffQueue()
         
         # Save the schedule of configuration changes
-        self.runway_config_schedule = runway_config
-        self.inbound_flow = inbound_rate
-        self.outbound_flow = outbound_rate
-        
+        self.user_config_schedule: dict[int, UserConfig]= user_config
+        self.inbound_flow = inbound_rate or 15
+        self.outbound_flow = outbound_rate or 15
         # Initialize runways using the configuration at t=0 (10-slot map)
-        initial_config = self.user_config_schedule.get(0)
+        initial_config = self.user_config_schedule[0]
         if initial_config and initial_config.runways is not None:
             initial_runways = initial_config.runways
         else:
@@ -70,7 +69,7 @@ class Simulation:
         self.schedule_departures: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         
         # Dynamic schedule generation
-        self._generate_schedule(inbound_rate, outbound_rate)
+        self._generate_schedule(self.inbound_flow, self.outbound_flow)
 
     def get_state_log(self): # Ati - Just don't want to break encapsulation so added method for getting logger data.
         return self._logger.get_file_data()
@@ -147,15 +146,20 @@ class Simulation:
                     
                 if config.max_hqueue_size is not None:
                     self.current_max_hqueue = config.max_hqueue_size
+                else:
+                    self.current_max_hqueue = 25   # Ati - Sometimes is None, and then next for loop breaks with undefined current
                     
                 if config.max_tqueue_size is not None:
                     self.current_max_tqueue = config.max_tqueue_size
+                else:
+                    self.current_max_tqueue = 25
                     
                 if config.emergency_callsign is not None:
-                    for p in self._allPlanes:
-                        if p.callsign == config.emergency_callsign:
-                            p.declare_emergency()
-                            break
+                    for cllsign in config.emergency_callsign:
+                        for p in self._allPlanes:
+                            if p.callsign == cllsign:
+                                p.declare_emergency()
+                                break
 
             for p in self.schedule_arrivals[t]:
                 if self.hqueue.size >= self.current_max_hqueue:
