@@ -22,17 +22,37 @@ const MainPage = () => {
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
 
-    //ERROR HANDLING
-    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
-    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
-    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
-
     // Fallbacks while no simulation is loaded
     const runways = activeSim?.runways || [];
     const takeoffQueue = activeSim?.takeoffQueue || [];
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
+
+    const [maxWaitConfig, setMaxWaitConfig] = useState({
+        maxWaitTakeoff: 30,
+        maxWaitHolding: 30
+    });
+
+    // BACKEND HOOK: replace body with context call e.g. updateMaxWait(newConfig)
+    const handlemaxWaitConfigChange = (newConfig) => {
+    setMaxWaitConfig(newConfig);
+    };
+
+    // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
+    const handleEmergencyToggle = (callsign, newState) => {
+    const updateList = (list) =>
+        list.map(f => f.callsign === callsign ? { ...f, isEmergency: newState } : f);
+    setTakeoffFlights(prev => updateList(prev));
+    setHoldingFlights(prev => updateList(prev));
+    };
+
+
+    //ERROR HANDLING
+    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
+    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
+    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
+
     console.log("playState:", activeSim?.playState);
     console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
     return (
@@ -51,13 +71,38 @@ const MainPage = () => {
             <div className="mainBody">
                 {/*Left Side*/}
                 <div className="leftSidebar">
-                    <TakeoffQueue flights={takeoffQueue} />
-                    <HoldingPattern flights={holdingPattern} />
+                    <TakeoffQueue 
+                        flights={takeoffQueue}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
+                    <HoldingPattern 
+                        flights={holdingPattern}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
                 </div>
 
 
                 {/*Centre Card*/}
                 <main className="centre">
+                    {/* Runway Mode Legend */}
+                    <div className="runwayLegend">
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#96711E' }} />
+                            Take-off
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#265EA8' }} />
+                            Landing
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#9B59B6' }} />
+                            Mixed
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#A0A0A0' }} />
+                            Unavailable
+                        </span>
+                    </div>
                     <div className="runwayGrid">
                         {/*Runways render dynamically with .map(), so each tab has its own runway config*/}
                         {runways.map((rw) => (
@@ -90,11 +135,7 @@ const MainPage = () => {
                     updates runways/takeoffQueue/holdingPattern,
                     which causes all the components above to re-render with the correct data for that second. */}
                     <div className="timeline">
-                        <Timeline
-                            onTimeChange={seekToTick}
-                            onPlayStateChange={(playing) => console.log("Playing:", playing)}
-                        />
-
+                        <Timeline />
                     </div>
                 </main>
 
@@ -105,16 +146,18 @@ const MainPage = () => {
 
                     </div>
                     <div className="Statistics">
-                        <div className="Statistics">
-                            <Statistics
-                                maxInTakeoff={statistics.max_tqueue_size}
-                                maxInHolding={statistics.max_hqueue_size}
-                                maxWaitTakeoff={statistics.max_tqueue_wait}
-                                maxWaitHolding={statistics.max_hqueue_wait}
-                                avgDelayTakeoff={statistics.avg_tqueue_delay}
-                                avgDelayArrival={statistics.avg_hqueue_delay}
-                            />
-                        </div>
+                        <Statistics
+                            maxWaitConfig={maxWaitConfig} 
+                            onMaxWaitConfigChange={handlemaxWaitConfigChange}
+                            maxInTakeoff={statistics.max_tqueue_size}
+                            maxInHolding={statistics.max_hqueue_size}
+                            avgWaitTakeoff={statistics.avg_tqueue_wait}
+                            avgWaitHolding={statistics.avg_hqueue_wait}
+                            avgDelayTakeoff={statistics.avg_tqueue_delay}
+                            avgDelayArrival={statistics.avg_hqueue_delay}
+                            maxDelayTakeoff={statistics.max_tqueue_delay}
+                            maxDelayHolding={statistics.max_hqueue_delay}
+                        />
                     </div>
                 </section>
 
