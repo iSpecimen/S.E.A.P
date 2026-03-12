@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 import uuid
+import gzip
+import shutil
 
 DELETE_LOGS : bool = False #Set to False to keep the logs after the simulation has ran
 
@@ -41,6 +43,7 @@ class Logger:
         self._log_offset : int = 0
         self._last_logged_tick: int = -1
         self._dumps = json.dumps
+        self._compressed = False
 
     def get_file_data(self) -> tuple[str, str]: # Ati - I don't to break encapsulation, so added public getter for log file data.
         return (self._file_path, self._file_name)
@@ -98,7 +101,7 @@ class Logger:
         self._file_log.write(json_obj)
         self._first_entry = False
         self._last_logged_tick = tick
-
+        
     def add_event_log(self, tick: int, log: str) -> None:
         hour: int = tick // 3600
         minute: int = (tick % 3600) // 60
@@ -165,6 +168,13 @@ class Logger:
         self._file_log.write("]")
         self._file_log.close()
         self._file_event.close()
+
+        # Compress after closing the JSON array so .jsonl.gz is complete/valid.
+        gz_path = self._file_path.with_suffix(self._file_path.suffix + ".gz")
+        with open(self._file_path, "rb") as f_in:
+            with gzip.open(gz_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        self._compressed = True
 
     def clear_log_file(self) -> None:
         if DELETE_LOGS:

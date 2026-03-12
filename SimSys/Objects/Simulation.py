@@ -128,6 +128,11 @@ class Simulation:
                 newrunways.append(LandingRunway(runway_number, 90, self.hqueue, r_status))
             else:
                 newrunways.append(None) 
+
+            if config[i][1] != "Aavailable":
+                newrunways[-1].disable_runway()
+            else:
+                newrunways[-1].enable_runway()
         
         active_count = sum(1 for r in newrunways if r is not None)
         print(f"--> Configured {active_count} Active Runways")
