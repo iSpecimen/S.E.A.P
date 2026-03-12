@@ -157,7 +157,7 @@ class SystemController():
     
 if __name__ == "__main__": # When debugging/testing this file, it will try create 2 fresh sims. 1.0 and 2.0
     sysCtrl = SystemController()
-    testrunwaychanges = [(100, 2, "Landing", "Available"), (102, 2, "Takeoff", "Snow Clearance"), (104, 2, "Mixed", "Available")]
+    testrunwaychanges = [(100, 1, "Landing", "Available"), (102, 1, "Takeoff", "Snow Clearance"), (104, 1, "Mixed", "Available")]
     testemergency = "Not Implemented, no idea what callsigns exist currently."
     
     print(sysCtrl.start_sim((3,3,3)))  # No parameters should mean it takes a default config. 

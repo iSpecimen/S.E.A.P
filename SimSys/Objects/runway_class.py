@@ -20,7 +20,7 @@ class Runway(ABC, Generic[Q]):
         self.status : str = status
         self.expected_free_time : int = 0 #time until runway becomes free
         self._length = 10000 #in ft, used to calculate timings.
-        self._disabled = (status == "Available")
+        self._disabled = (status != "Available")
 
     def load(self, queue : Q) -> None:
         if not self.free:

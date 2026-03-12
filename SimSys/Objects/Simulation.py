@@ -122,18 +122,22 @@ class Simulation:
                 continue 
 
             r_mode, r_status = config[i]  # Breaks when config[i] is None, so has the safety before this. 
+            
             runway_number = i + 1 
             
             if r_mode == "Takeoff":
                 newrunways.append(TakeOffRunway(runway_number, 90, self.tqueue, r_status))
+                print(f"Runway {runway_number} | Mode: {r_mode} | Status: {r_status}")
             elif r_mode == "Mixed":
                 newrunways.append(MixedRunway(runway_number, 90, self.tqueue, self.hqueue, r_status))
+                print(f"Runway {runway_number} | Mode: {r_mode} | Status: {r_status}")
             elif r_mode == "Landing":
                 newrunways.append(LandingRunway(runway_number, 90, self.hqueue, r_status))
+                print(f"Runway {runway_number} | Mode: {r_mode} | Status: {r_status}")
             else:
                 newrunways.append(None) 
         
-        active_count = sum(1 for r in newrunways if r is not None)
+        active_count = sum(1 for r in newrunways if r is not None )
         print(f"--> Configured {active_count} Active Runways")
         return newrunways
     
@@ -148,6 +152,7 @@ class Simulation:
                 
                 if config.runways is not None:
                     self.runways = self.generate_runway_config(config.runways)
+                    print(f"Runways Configured at tick {t}")
                     
                 if config.max_hqueue_size is not None:
                     self.current_max_hqueue = config.max_hqueue_size
