@@ -88,13 +88,33 @@
 
 }
 
-.rightSidebar{
+.rightSidebar {
     width: 300px;
     min-width: 220px;
     min-height: 0;
-    display:flex;
+    display: flex;
     flex-direction: column;
     gap: 4px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+.Cancellations {
+    border-radius: 4px;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.Statistics {
+    border-radius: 4px;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
 .arrDepToggle {
@@ -111,6 +131,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: right 0.3s ease;
+  z-index: 20;
 }
 
 .arrDepToggle:hover {
@@ -139,6 +160,7 @@
   transition: right 0.3s ease;
   z-index: 5;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 15;
 }
 
 .arrDepSidebar.open {
@@ -163,22 +185,6 @@
 }
 
 .HoldingPattern {
-  border-radius: 4px;
-  flex: 1;
-  min-height: 0px;
-  display: flex;
-  flex-direction: column;
-}
-
-.Cancellations {
-  border-radius: 4px;
-  flex: 1;
-  min-height: 0px;
-  display: flex;
-  flex-direction: column;
-}
-
-.Statistics {
   border-radius: 4px;
   flex: 1;
   min-height: 0px;
@@ -251,6 +257,7 @@
     background-color: #265EA8;
     color: white;
     transition: opacity 0.2s;
+    font-family: "Segoe UI", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .commitChangesBtn:disabled {
