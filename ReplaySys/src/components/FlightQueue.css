@@ -73,3 +73,132 @@
 .table-wrapper::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* --- HOVER POPUP LOGIC --- */
+
+/* 1. The Anchor: The table cell containing the popup */
+.time-cell {
+  position: relative;
+}
+
+/* 2. The Popup Box: Using your exact Runway Card values */
+.flight-actions-popup {
+  position: absolute;
+  top: -10px;      /* Slight offset to align better with the row */
+  right: 110%;    /* Pops out to the left of the table */
+  width: auto;
+  min-width: 160px;
+  max-width: 250px;
+  white-space: normal;
+  word-wrap: break-word;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  
+  /* Initial State */
+  opacity: 0;
+  visibility: hidden;
+  
+  /* Your Exact Transition Logic */
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition-delay: 0.5s; /* Delay when mouse leaves */
+}
+
+/* 3. The Hover State */
+.flight-row:hover .flight-actions-popup {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.7s; /* Delay before appearing (prevents flickering) */
+  animation: flightFadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- EMERGENCY ROW STYLING --- */
+
+.emergency-active {
+  background-color: rgba(211, 47, 47, 0.1) !important;
+}
+
+.emergency-active td {
+  color: #b71c1c !important;
+  font-weight: 800 !important;
+}
+/* --- MODERN TOGGLE SWITCH --- */
+
+.emergency-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.emergency-control span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #333;
+  letter-spacing: 0.5px;
+}
+
+/* The switch container */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 18px;
+}
+
+/* Hide default checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The track */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+  border-radius: 34px;
+}
+
+/* The sliding ball */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Active State: Red for Emergency */
+input:checked + .slider {
+  background-color: #d32f2f;
+}
+
+/* Moving the ball */
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* Focus outline for accessibility */
+input:focus + .slider {
+  box-shadow: 0 0 1px #d32f2f;
+}

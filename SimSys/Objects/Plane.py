@@ -7,6 +7,7 @@ class Plane:
         self.operator: str = "UNKNOWN"
         self.origin: str = "???"
         self.destination: str = "???"
+        
 
         # UML suggests these need to be private, but for scheduling they need to be updated
         self._scheduled_time: int = scheduled_time

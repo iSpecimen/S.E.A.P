@@ -11,21 +11,23 @@ from SimSys.Objects.queue_class import Queue
 Q = TypeVar("Q", bound=Queue)
 
 class Runway(ABC, Generic[Q]):
-    def __init__(self, number : int, bearing : int):
+    def __init__(self, number : int, bearing : int, status : str):
         self.number : int = number
         self.bearing : int = bearing
         self.free : bool = True
         self.occupier : Plane | None = None
         self.mode : str = ""
-        self.status : str = "Available"
+        self.status : str = status
         self.expected_free_time : int = 0 #time until runway becomes free
         self._length = 10000 #in ft, used to calculate timings.
+        self._disabled = (status != "Available")
+        self._default = status
 
     def load(self, queue : Q) -> None:
         if not self.free:
             raise RuntimeError("Cannot load runway: Currently in use!")
 
-        if queue.size != 0:
+        if queue.size != 0 and not self._disabled:
             self.occupier = queue.pop()
             self.free = False
             self.status = "Runway in use"
@@ -36,7 +38,7 @@ class Runway(ABC, Generic[Q]):
         self.occupier = None
         self.expected_free_time = 0
         self.free = True
-        self.status = "Available"
+        self.status = self._default
 
     @abstractmethod
     def to_string(self) -> str:

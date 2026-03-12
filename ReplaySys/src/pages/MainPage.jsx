@@ -13,24 +13,14 @@ import { useSimulation } from "../context/SimulationContext";
 
 // Declaring functional component const
 const MainPage = () => {
-    const [takeoffFlights, setTakeoffFlights] = useState([
-        { callsign: 'MX123', destination: 'LONDON', time: '12:45' },
-        { callsign: 'UA990', destination: 'NEW YORK', time: '13:10' },
-        { callsign: 'AF442', destination: 'PARIS', time: '13:25' },
-        { callsign: 'LH101', destination: 'BERLIN', time: '13:40' },
-    ]);
-
-    // Mock data for the Holding Pattern
-    const [holdingFlights, setHoldingFlights] = useState([
-        { callsign: 'CS261', origin: 'LISBON', time: '06:50' },
-        { callsign: 'QA332', origin: 'DOHA', time: '07:15' },
-    ]);
+    const ctx = useSimulation();
+    console.log("ALL CONTEXT KEYS:", Object.keys(ctx));
+    console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
+    //Reading from context
+    const { activeSim, seekToTick, commitRunwayChanges } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
-
-
-    const { activeSim, togglePlayPause } = useSimulation();
 
     // Fallbacks while no simulation is loaded
     const runways = activeSim?.runways || [];
@@ -38,6 +28,33 @@ const MainPage = () => {
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
+
+    const [maxWaitConfig, setMaxWaitConfig] = useState({
+        maxWaitTakeoff: 30,
+        maxWaitHolding: 30
+    });
+
+    // BACKEND HOOK: replace body with context call e.g. updateMaxWait(newConfig)
+    const handlemaxWaitConfigChange = (newConfig) => {
+    setMaxWaitConfig(newConfig);
+    };
+
+    // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
+    const handleEmergencyToggle = (callsign, newState) => {
+    const updateList = (list) =>
+        list.map(f => f.callsign === callsign ? { ...f, isEmergency: newState } : f);
+    setTakeoffFlights(prev => updateList(prev));
+    setHoldingFlights(prev => updateList(prev));
+    };
+
+
+    //ERROR HANDLING
+    if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
+    if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
+    if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
+
+    console.log("playState:", activeSim?.playState);
+    console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
     return (
         <div className="mainPage">
             {/*Tab Bar - Simulation Tab Component */}
@@ -49,17 +66,43 @@ const MainPage = () => {
                 />
 
             </header>
+
             {/*Main Content*/}
             <div className="mainBody">
                 {/*Left Side*/}
                 <div className="leftSidebar">
-                    <TakeoffQueue flights={takeoffFlights} />
-                    <HoldingPattern flights={holdingFlights} />
+                    <TakeoffQueue 
+                        flights={takeoffQueue}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
+                    <HoldingPattern 
+                        flights={holdingPattern}
+                        onEmergencyToggle={handleEmergencyToggle}
+                    />
                 </div>
 
 
                 {/*Centre Card*/}
                 <main className="centre">
+                    {/* Runway Mode Legend */}
+                    <div className="runwayLegend">
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#96711E' }} />
+                            Take-off
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#265EA8' }} />
+                            Landing
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#9B59B6' }} />
+                            Mixed
+                        </span>
+                        <span className="legendItem">
+                            <span className="legendDot" style={{ backgroundColor: '#A0A0A0' }} />
+                            Unavailable
+                        </span>
+                    </div>
                     <div className="runwayGrid">
                         {/*Runways render dynamically with .map(), so each tab has its own runway config*/}
                         {runways.map((rw) => (
@@ -67,39 +110,54 @@ const MainPage = () => {
                                 key={rw.id}
                                 runwayID={rw.id}
                                 runwayName={rw.name}
+                                callSign={rw.callsign || "N/A"}
                                 initialMode={rw.mode}
                                 initialStatus={rw.status}
                             />))}
                     </div>
+                    {/* New commit button */}
+                    {/* In MainPage.jsx, replace the bare button with: */}
+                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                        <button
+                            className="commitChangesBtn"
+                            disabled={activeSim?.playState === "playing"}
+                            onClick={() => {
+                                console.log("BUTTON CLICKED");
+                                commitRunwayChanges();
+                            }}
+                        >
+                            Commit Changes
+                        </button>
+                    </div>
+                    {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
+                    We pass seekToTick as that callback.
+                    seekToTick indexes into stateLog[newSecond] and
+                    updates runways/takeoffQueue/holdingPattern,
+                    which causes all the components above to re-render with the correct data for that second. */}
                     <div className="timeline">
-                        <Timeline
-                            onTimeChange={(sec) => console.log("Time:", sec)}
-                            onPlayStateChange={(playing) => console.log("Playing:", playing)}
-                        />
-
+                        <Timeline />
                     </div>
                 </main>
 
                 {/*Right Side*/}
                 <section className="rightSidebar">
                     <div className="Cancellations">
-                        <Cancellations events={[
-                            { id: 1, type: "diversion", callsign: "AB123", message: "FLIGHT AB123 HAS TO BE DIVERTED TO..." },
-                            { id: 2, type: "cancellation", callsign: "CD7363", message: "FLIGHT CD7363 HAS TO BE CANCELLED" },
-                        ]} />
+                        <Cancellations events={activeSim?.cancellations || []}></Cancellations>
 
                     </div>
                     <div className="Statistics">
-                        <div className="Statistics">
-                            <Statistics
-                                maxInTakeoff={38}
-                                maxInHolding={44}
-                                maxWaitTakeoff={40}
-                                maxWaitHolding={10}
-                                avgDelayTakeoff={null}
-                                avgDelayArrival={null}
-                            />
-                        </div>
+                        <Statistics
+                            maxWaitConfig={maxWaitConfig} 
+                            onMaxWaitConfigChange={handlemaxWaitConfigChange}
+                            maxInTakeoff={statistics.max_tqueue_size}
+                            maxInHolding={statistics.max_hqueue_size}
+                            avgWaitTakeoff={statistics.avg_tqueue_wait}
+                            avgWaitHolding={statistics.avg_hqueue_wait}
+                            avgDelayTakeoff={statistics.avg_tqueue_delay}
+                            avgDelayArrival={statistics.avg_hqueue_delay}
+                            maxDelayTakeoff={statistics.max_tqueue_delay}
+                            maxDelayHolding={statistics.max_hqueue_delay}
+                        />
                     </div>
                 </section>
 
@@ -109,15 +167,27 @@ const MainPage = () => {
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
-                        <ArrivalsDepartures
-                            departures={[
-                                { id: 1, callsign: "MX123", destination: "LONDON", time: "12:45" },
-                            ]}
-                            arrivals={[
-                                { id: 1, callsign: "CS261", origin: "LISBON", time: "06:50" },
-                            ]}
-                        />
 
+                        <ArrivalsDepartures
+                            departures={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin === "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    destination: p.destination,
+                                    time: p.time,
+                                }))}
+                            arrivals={runways
+                                .map((rw) => rw.plane)
+                                .filter((p) => p && p.origin !== "SEAP")
+                                .map((p, i) => ({
+                                    id: i,
+                                    callsign: p.callsign,
+                                    origin: p.origin,
+                                    time: p.time,
+                                }))}
+                        />
                     </div>
                 </aside>
             </div>

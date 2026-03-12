@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from .Simulation import Simulation
 
 class LandingRunway(Runway[HoldingPatternQueue]):
-    def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Landing"
         self.landingQueue = landingQueue
 
@@ -31,7 +31,7 @@ class LandingRunway(Runway[HoldingPatternQueue]):
         return "Not implemented"
     
     def tick_update(self, curr_time: int, sim: "Simulation") -> None:
-        if self.free:
+        if self.free and not self._disabled:
             self.load(self.landingQueue)
         elif self.expected_free_time != 0 and self.occupier is not None:
             if self.occupier.get_mins_left() < 10:

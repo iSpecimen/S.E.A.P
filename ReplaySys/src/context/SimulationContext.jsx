@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useCallback, useState, useEffect } from "react";
+import React, { createContext, useContext, useCallback, useState, useEffect, useRef } from "react";
 
-
+import { startSimulation, changeSimulation, fetchFullState, fetchStatistics } from "../services/api";
 //Context creates a shared data layer that both components can read and write to
 // SimTab tells context to "switch to tab X" and MainPage reads context to get tab X's data
 // createContext makes a container a child component can tap into
@@ -11,28 +11,104 @@ export const useSimulation = () => useContext(SimulationContext);
 
 //Stamps out initial state for a new simulation
 const createSimState = (config = {}) => ({
-    //Runways dynamically generated from user input
-    runways: config.runways || [{ id: 1, name: "Runway 1", mode: "Mixed", status: "AVAILABLE" },
-    { id: 2, name: "Runway 2", mode: "Mixed", status: "AVAILABLE" },
+    // Backend version (maps to SystemController major.minor)
+    major: null,
+    minor: null,
+    version: null,
 
-    ],
+    // Status
+    loading: false,
+    error: null,
 
-    //Queues - start empty, then they are later populated by the backend
-    takeoffQueue: config.takeoffQueue || [],
-    holdingPattern: config.holdingPattern || [],
+    // Full state log fetched in one GET request (86,400 entries)
+    stateLog: null,
 
-    //Output panels
-    cancellations: config.cancellations || [],
-    statistics: config.statistics || {},
+    // Final stats from GET /api/stats
+    statistics: null,
 
+    // What the user entered on the start page
+    startConfig: {
+        numRunways: config.numRunways ?? 4,
+        inboundFlow: config.inboundFlow ?? 10,
+        outboundFlow: config.outboundFlow ?? 10,
+    },
 
-    //Timeline 
+    // Components read these- these are the per tick fields
+    runways: [],
+    takeoffQueue: [],
+    holdingPattern: [],
+    cancellations: [],
+
+    // Timeline
     timelineSec: 0,
-    playState: "paused", //"paused"| "playing"
+    playState: "paused",
+
+    pendingRunwayChanges: {},
 
 }
 
 );
+
+
+
+//Maps one tick's Logger class output to a component-friendly prop
+// Allows the components to easily access and render the information
+function frameToComponentState(frame) {
+    if (!frame) {
+        return {};
+    }
+    const runways = (frame.runways || []).map((r, index) => ({
+        id: index,
+        name: `Runway ${index + 1}`,
+        mode: r.mode,
+        status: r.status,
+        callsign: r.plane?.callsign,
+        bearing: r.bearing,
+        expectedFreeTime: r.expected_free_time,
+        plane: r.plane,
+    }));
+
+    // Takeoff Queue 
+    // Logger: frame.TakeoffQueue.planes to array of plane dictionaries
+    const takeoffQueue = (frame.TakeoffQueue?.planes || []).map(mapPlane);
+
+
+
+    //Holding Pattern
+    // Maps the frame with the holding pattern planes to an array of plane dictionaries
+    const holdingPattern = (frame.HoldingQueue?.planes || []).map(mapPlane);
+    console.log("Runway statuses:", frame.runways?.map(r => ({ status: r.status, mode: r.mode })));
+
+    return { runways, takeoffQueue, holdingPattern }
+}
+
+function formatSecondsToTime(totalSeconds) {
+    if (totalSeconds == null) return "--:--";
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+
+//Maps a single plane dictionary from the logger into component-friendly props
+function mapPlane(plane) {
+    return {
+        callsign: plane.callsign,
+        operator: plane.operator,
+        origin: plane.origin,
+        destination: plane.destination,
+        scheduledTime: plane._scheduled_time,
+        time: formatSecondsToTime(plane._scheduled_time),
+        altitude: plane._altitude,
+        fuel: plane._fuel_seconds,
+        speed: plane._ground_speed,
+        delayed: plane._delayed,
+        emergency: plane._emergency,
+    };
+}
+
+
+
 
 
 //Wrapper component that holds all the simulation data
@@ -43,41 +119,112 @@ const createSimState = (config = {}) => ({
 export function SimulationProvider({ children }) {
     const [simulations, setSimulations] = useState({});
     const [activeTabID, setActiveTabID] = useState(null);
-
+    const playIntervalRef = useRef(null);
+    const playbackSpeedRef = useRef(1);
     const activeSim = activeTabID ? simulations[activeTabID] : null;
 
-    //Called by SimulationTab when "+ New Simulation" is clicked
-    const createSimulation = useCallback((tabID, config) => {
+    // Frontend tab labelling
+    // Mapped here (not in SimulationTab) so labels survive page switches.
+    // simCounter: increments for each new root simulation (1, 2, 3...)
+    const simCounterRef = useRef(0);
+    const [labelMap, setLabelMap] = useState({});
+
+    //Called by StartPage when "Start Simulation" is clicked
+    //Creates a new simulation by sending the start page data to the backend using POST /api/simulate
+    // Then gets the state and stats
+    const createSimulation = useCallback(async (config) => {
+        const tempTabID = `loading_${Date.now()}`;
+
+        // Increment the frontend sim counter for this new root simulation
+        simCounterRef.current += 1;
+        const thisSimNumber = simCounterRef.current;
+
         setSimulations((prev) => ({
             ...prev,
-            [tabID]: createSimState(config),
-
-
+            [tempTabID]: { ...createSimState(config), loading: true },
         }));
-        setActiveTabID(tabID);
+        setActiveTabID(tempTabID);
+
+        try {
+            // POST config : backend runs all 86,400 ticks
+            const { major, minor, version } = await startSimulation({
+                numRunways: config.numRunways ?? 4,
+                inboundFlow: config.inboundFlow ?? 10,
+                outboundFlow: config.outboundFlow ?? 10,
+            });
+
+            // Fetch full state log + stats in parallel
+            const [stateLog, statistics] = await Promise.all([
+                fetchFullState(major, minor),
+                fetchStatistics(major, minor),
+            ]);
+
+            // Get initial frame (tick 0)
+            const initialFrame = frameToComponentState(stateLog[0]);
+            const tabID = version; // "1.0", "2.0", etc.
+
+            setSimulations((prev) => {
+                const next = { ...prev };
+                delete next[tempTabID];
+                next[tabID] = {
+                    ...createSimState(config),
+                    major,
+                    minor,
+                    version,
+                    loading: false,
+                    stateLog,
+                    statistics,
+                    ...initialFrame,
+                    timelineSec: 0,
+                    playState: "paused",
+                };
+                return next;
+            });
+            setActiveTabID(tabID);
+
+            // Assign frontend label for this root simulation
+            setLabelMap((prev) => ({
+                ...prev,
+                [tabID]: { simNumber: thisSimNumber, copyNumber: null },
+            }));
+        } catch (err) {
+            setSimulations((prev) => ({
+                ...prev,
+                [tempTabID]: {
+                    ...prev[tempTabID],
+                    loading: false,
+                    error: err.message,
+                },
+            }));
+        }
     }, []);
 
     //Called when copy config clicked
     //Deep copies the simulation's entire state using JSON.parse(JSON.stringify(...))
     //Copy starts identical to the original, changes only affect the copy
     //Allows you to test alternative runway settings without losing the original
-    const duplicateSimulation = useCallback(
-        (sourceTabID, newTabID) => {
-            setSimulations((prev) => {
-                const source = prev[sourceTabID];
-                if (!source) return prev;
-                return {
-                    ...prev,
+    const duplicateSimulation = useCallback((sourceTabID, newTabID) => {
+        setSimulations((prev) => {
+            const source = prev[sourceTabID];
+            if (!source) return prev;
+            return { ...prev, [newTabID]: JSON.parse(JSON.stringify(source)) };
+        });
+        setActiveTabID(newTabID);
 
-                    //Deep copy- changes to the copy don't affect the original
-                    [newTabID]: JSON.parse(JSON.stringify(source)),
-
-                };
-            });
-            setActiveTabID(newTabID);
-        },
-        []
-    );
+        // Assign a copy label: find the source's simNumber and count existing copies
+        setLabelMap((prev) => {
+            const sourceInfo = prev[sourceTabID];
+            if (!sourceInfo) return prev;
+            const rootSimNumber = sourceInfo.simNumber;
+            const existingCopies = Object.values(prev).filter(
+                (info) => info.simNumber === rootSimNumber && info.copyNumber != null
+            ).length;
+            return {
+                ...prev,
+                [newTabID]: { simNumber: rootSimNumber, copyNumber: existingCopies + 1 },
+            };
+        });
+    }, []);
 
     // Called when switching tabs
     const switchTab = useCallback((tabID) => {
@@ -91,7 +238,56 @@ export function SimulationProvider({ children }) {
             delete next[tabID];
             return next;
         });
+        // Clean up the label
+        setLabelMap((prev) => {
+            const next = { ...prev };
+            delete next[tabID];
+            return next;
+        });
+        setActiveTabID((currentID) => {
+            if (currentID !== tabID) return currentID;
+            const remaining = Object.keys(simulations).filter((k) => k !== tabID);
+            return remaining.length > 0 ? remaining[0] : null;
+        });
+    }, [simulations]);
+
+    // Called when "+ New Simulation" is clicked in the tab bar.
+    // Clears activeTabID so App.jsx renders StartPage again.
+    const requestNewSimulation = useCallback(() => {
+        setActiveTabID(null);
     }, []);
+
+
+    //Called when the user drags the timeline to a specific position
+    // Process:
+    /**
+     * Confine tick to valid range (0 to 86399)
+     * Index into stateLog[tick] to get that second's raw data
+     * Run frameToComponentState() top extract runway/ queue data
+     * Update tab component fields so components re-render properly
+     */
+    // We fetch the entire state log output- can scan through timeline in an instant, it's just an array lookup
+    const seekToTick = useCallback((tick) => {
+        if (!activeTabID) return;
+        setSimulations((prev) => {
+            const sim = prev[activeTabID];
+            if (!sim?.stateLog) {
+                return prev;
+
+            }
+
+            const time = Math.max(0, Math.min(tick, sim.stateLog.length - 1));
+            //Gets the current component state frame at the specified tick time
+            const frame = frameToComponentState(sim.stateLog[time]);
+
+            return {
+                ...prev,
+                //Updates play head position and overwrites takeooff, runways, and holding pattern
+                [activeTabID]: { ...sim, timelineSec: time, ...frame },
+            };
+        });
+    }, [activeTabID]);
+
 
     //Only updates active simulation's data 
     //togglePlayPause flips between 'playing' and 'paused'
@@ -100,46 +296,250 @@ export function SimulationProvider({ children }) {
         if (!activeTabID) return;
         setSimulations((prev) => ({
             ...prev,
-            //Only modifies those with activeTabID, other tabs left untouched
             [activeTabID]: {
                 ...prev[activeTabID],
-                playState: prev[activeTabID].playState === "playing" ? "paused" : "playing",
-
+                playState:
+                    prev[activeTabID].playState === "playing" ? "paused" : "playing",
             },
         }));
     }, [activeTabID]);
 
-    //Changes a specific runway's mode/status when user picks from RunwayCard dropdowns
 
+    const commitRunwayChanges = useCallback(async () => {
+        if (!activeTabID) return;
+        const sim = simulations[activeTabID];
+        if (sim?.major == null || sim?.minor == null) return;
+
+        const pending = sim.pendingRunwayChanges || {};
+        console.log("Pending contents:", JSON.stringify(pending));
+        console.log("Pending keys:", Object.keys(pending));
+        if (Object.keys(pending).length === 0) {
+            console.log("No runway changes detected");
+            return;
+        }
+
+        // Buildrunway_config directly from pending — no second filter
+        const runway_config = [];
+        Object.entries(pending).forEach(([runwayID, changes]) => {
+            const id = parseInt(runwayID);
+
+            // get current values
+            const current = sim.runways[id];
+            const mode = changes.mode ?? current.mode;
+            const status = changes.status ?? current.status;
+
+            runway_config.push([sim.timelineSec, id + 1, mode, status]);
+        });
+
+        const plane_config = [];
+
+        if (runway_config.length === 0) {
+            console.log("No mode changes to send");
+            return;
+        }
+
+        console.log("Sendingrunway_config:", runway_config);
+
+        try {
+
+            const { major, minor, version } = await changeSimulation({
+                major: sim.major,
+                minor: sim.minor,
+                runway_config,
+                plane_config
+            });
+
+            const [stateLog, statistics] = await Promise.all([
+                fetchFullState(major, minor),
+                fetchStatistics(major, minor),
+            ]);
+
+            const initialFrame = frameToComponentState(stateLog[0]);
+            const tabID = version;
+
+            setSimulations((prev) => ({
+                ...prev,
+                [tabID]: {
+                    ...prev[activeTabID],
+                    major,
+                    minor,
+                    version,
+                    stateLog,
+                    statistics,
+                    ...initialFrame,
+                    timelineSec: 0,
+                    playState: "paused",
+                    loading: false,
+                    error: null,
+                    pendingRunwayChanges: {},  // Clear pending after commit
+                },
+            }));
+            setActiveTabID(tabID);
+
+            setLabelMap((prev) => {
+                const sourceInfo = prev[activeTabID];
+                if (!sourceInfo) return prev;
+                const rootSimNumber = sourceInfo.simNumber;
+                const existingCopies = Object.values(prev).filter(
+                    (info) => info.simNumber === rootSimNumber && info.copyNumber != null
+                ).length;
+                return {
+                    ...prev,
+                    [tabID]: { simNumber: rootSimNumber, copyNumber: existingCopies + 1 },
+                };
+            });
+        } catch (err) {
+            setSimulations((prev) => ({
+                ...prev,
+                [activeTabID]: { ...prev[activeTabID], error: err.message },
+            }));
+        }
+    }, [activeTabID, simulations]);
+    //
+    // PLAYBACK LOOP
+    //
+    // This useEffect fires whenever playState or stateLog changes.
+    // When playState is "playing", it starts a setInterval that:
+    //   - Advances timelineSec by 1 every real second
+    //   - Calls frameToComponentState on the new tick
+    //   - Updates the derived fields (runways, takeoffQueue, holdingPattern)
+    //   - Auto-pauses when it reaches the end (tick 86399)
+    //
+    // When playState is "paused", it clears the interval (stops advancing).
+    //
+    useEffect(() => {
+        // Always clear any existing interval first
+        if (playIntervalRef.current) {
+            clearInterval(playIntervalRef.current);
+            playIntervalRef.current = null;
+        }
+
+        // Only start the interval if we're actually playing with data loaded
+        if (activeSim?.playState !== "playing" || !activeSim?.stateLog) return;
+
+        playIntervalRef.current = setInterval(() => {
+            setSimulations((prev) => {
+                const sim = prev[activeTabID];
+                if (!sim || sim.playState !== "playing" || !sim.stateLog) return prev;
+
+                const nextTick = sim.timelineSec + 1;
+
+                // Reached the end of the 24-hour simulation — auto-pause
+                if (nextTick >= sim.stateLog.length) {
+                    return { ...prev, [activeTabID]: { ...sim, playState: "paused" } };
+                }
+
+                // Extract the next frame and update
+                const frame = frameToComponentState(sim.stateLog[nextTick]);
+                return {
+                    ...prev,
+                    [activeTabID]: { ...sim, timelineSec: nextTick, ...frame },
+                };
+            });
+        }, 1000 / playbackSpeedRef.current);
+        // 1000ms = 1 real second per 1 sim second (real-time playback)
+        // Change to 200 for 5x speed, 100 for 10x speed, etc.
+
+        // Cleanup: clear interval when this effect re-runs 
+        return () => {
+            if (playIntervalRef.current) clearInterval(playIntervalRef.current);
+        };
+    }, [activeTabID, activeSim?.playState, activeSim?.stateLog]);
+
+
+    //  Called when: User changes a runway's mode/status via dropdown
+    //  BEFORE the simulation runs (or while paused for config branching).
+    //
+    //  During active replay, runways are read-only (driven by stateLog).
+    //
     const updateRunway = useCallback((runwayID, changes) => {
         if (!activeTabID) return;
-        setSimulations((prev) => ({
-            ...prev,
-            [activeTabID]: {
-                ...prev[activeTabID],
-                runways: prev[activeTabID].runways.map((r) =>
-                    r.id === runwayID ? { ...r, ...changes } : r
-                ),
-            },
-        }));
+        setSimulations((prev) => {
+            const sim = prev[activeTabID];
+            return {
+                ...prev,
+                [activeTabID]: {
+                    ...sim,
+                    // Still update runways for visual feedback
+                    runways: sim.runways.map((r) =>
+                        r.id === runwayID ? { ...r, ...changes } : r
+                    ),
+                    // Also store the edit separately so it survives seekToTick
+                    pendingRunwayChanges: {
+                        ...sim.pendingRunwayChanges,
+                        [runwayID]: {
+                            ...sim.pendingRunwayChanges?.[runwayID],
+                            ...changes,
+                        },
+                    },
+                },
+            };
+        });
     }, [activeTabID]);
+    
 
+    const setPlaybackSpeed = useCallback((speed) => {
+        playbackSpeedRef.current = speed;
+        // If currently playing, restart the interval with new speed
+        if (activeSim?.playState === "playing") {
+            // Toggle off and on to restart the interval with new speed
+            setSimulations((prev) => ({
+                ...prev,
+                [activeTabID]: { ...prev[activeTabID], playState: "paused" },
+            }));
+            setTimeout(() => {
+                setSimulations((prev) => ({
+                    ...prev,
+                    [activeTabID]: { ...prev[activeTabID], playState: "playing" },
+                }));
+            }, 50);
+        }
+    }, [activeTabID, activeSim?.playState]);
+
+
+    // WHAT CAN BE ACCESSED BY WHAT AT A PARTICULAR TIME?
+    //  State:
+    //    simulations  — the full dictionary of all tabs
+    //    activeTabID  — which tab is currently selected (e.g. "1.0")
+    //    activeSim    — shortcut: the currently selected tab's state object
+    //    labelMap     — tab labelling: tabID → { simNumber, copyNumber }
+    //
+    //  Actions:
+    //    createSimulation(config)              — Start Page calls this
+    //    duplicateSimulation(sourceID, newID)  — Copy Config calls this
+    //    switchTab(tabID)                      — SimulationTab calls this
+    //    removeSimulation(tabID)               — Close tab button calls this
+    //    requestNewSimulation()                — "+ New Simulation" button calls this
+    //    togglePlayPause()                     — Timeline play button calls this
+    //    seekToTick(tick)                      — Timeline slider calls this
+    //    updateRunway(runwayID, changes)       — RunwayCard dropdown calls this
+    //
     return (
         <SimulationContext.Provider
             value={{
-                simulations, //Full dictionary
-                activeTabID, //current tab ID
-                activeSim, //current tab's data (most used)
-                createSimulation, //SimulationTab calls this
+                // State
+                simulations,
+                activeTabID,
+                activeSim,
+                labelMap,
+
+                // Actions
+                createSimulation,
                 duplicateSimulation,
                 switchTab,
                 removeSimulation,
-                togglePlayPause,  //Timeline calls this
-                updateRunway, //RunwayCard calls this
-
+                requestNewSimulation,
+                togglePlayPause,
+                seekToTick,
+                updateRunway,
+                commitRunwayChanges,
+                setPlaybackSpeed,
             }}
-        >{children}</SimulationContext.Provider>
+        >
+            {children}
+        </SimulationContext.Provider>
     );
 
-}
 
+
+}
