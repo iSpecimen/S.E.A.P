@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 #2:1 Ratio - takeoff queue should aim to be 2x size of landing queue
 
 class MixedRunway(Runway[Queue]):
-    def __init__(self, number : int, bearing : int, takeoffQueue : TakeOffQueue, landingQueue : HoldingPatternQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, takeoffQueue : TakeOffQueue, landingQueue : HoldingPatternQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Mixed"
         self.takeOffQueue = takeoffQueue
         self.landingQueue = landingQueue

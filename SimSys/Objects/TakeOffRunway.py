@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from .Simulation import Simulation
 
 class TakeOffRunway(Runway[TakeOffQueue]):
-    def __init__(self, number : int, bearing : int, takeOffQueue : TakeOffQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, takeOffQueue : TakeOffQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Takeoff"
         self.takeOffQueue = takeOffQueue
 

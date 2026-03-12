@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from .Simulation import Simulation
 
 class LandingRunway(Runway[HoldingPatternQueue]):
-    def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, landingQueue : HoldingPatternQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Landing"
         self.landingQueue = landingQueue
 
