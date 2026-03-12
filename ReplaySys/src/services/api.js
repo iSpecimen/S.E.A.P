@@ -12,6 +12,8 @@ function parseJsonLinesOrArray(text) {
   const trimmed = text.trim();
   if (!trimmed) return []; //empty case
 
+  if (text.startsWith("[")) return JSON.parse(text);
+
   return trimmed
     .split(/\r?\n/) //split by line
     .map((line) => line.trim()) //trim each line
