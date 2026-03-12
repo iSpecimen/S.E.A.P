@@ -318,14 +318,18 @@ export function SimulationProvider({ children }) {
         // Buildrunway_config directly from pending — no second filter
         const runway_config = [];
         Object.entries(pending).forEach(([runwayID, changes]) => {
-            if (changes.mode) {
-                runway_config.push([sim.timelineSec, parseInt(runwayID), changes.mode]);
-            }
-            if (changes.status) {
-                runway_config.push([sim.timelineSec, parseInt(runwayID), changes.status]);
-            }
+            const id = parseInt(runwayID);
+
+            // get current values
+            const current = sim.runways[id];
+            const mode = changes.mode ?? current.mode;
+            const status = changes.status ?? current.status;
+
+            runway_config.push([sim.timelineSec, id+1, mode, status]);
         });
 
+        const plane_config = [];
+        
         if (runway_config.length === 0) {
             console.log("No mode changes to send");
             return;
@@ -339,6 +343,7 @@ export function SimulationProvider({ children }) {
                 major: sim.major,
                 minor: sim.minor,
                 runway_config,
+                plane_config
             });
 
             const [stateLog, statistics] = await Promise.all([

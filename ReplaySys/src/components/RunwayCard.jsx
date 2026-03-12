@@ -12,10 +12,10 @@ import { useSimulation } from '../context/SimulationContext';
 
 // This map defines the colors for different modes.
 const colorMap = {
-  'Take-off': '#96711E',
+  'Takeoff': '#96711E',
   'Landing': '#265EA8',
   'Mixed': '#9B59B6',
-  'Take-off_muted': '#C4A96A',   // muted gold
+  'Takeoff_muted': '#C4A96A',   // muted gold
   'Landing_muted': '#7AADD4',    // muted blue
   'Mixed_muted': '#C49FD4',      // muted purple
   'Unavailable': '#A0A0A0',
@@ -131,7 +131,7 @@ export default function RunwayCard({
           <div className="control-group">
             <label>MODE</label>
             <select value={mode} onChange={handleModeChange} disabled={isLocked}>
-              <option value="Take-off">Take-off</option>
+              <option value="Takeoff">Take-off</option>
               <option value="Landing">Landing</option>
               <option value="Mixed">Mixed</option>
             </select>

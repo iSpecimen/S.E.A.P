@@ -115,7 +115,7 @@ class Simulation:
             config = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing", "Available"), None, None, None, None, None, None, None]
         
         newrunways: list[TakeOffRunway | MixedRunway | LandingRunway | None] = []
-
+        print(f"Config: {config}")
         for i in range(10):
             if config[i] == None:
                 newrunways.append(None) 
