@@ -8,8 +8,8 @@ if TYPE_CHECKING:
     from .Simulation import Simulation
 
 class TakeOffRunway(Runway[TakeOffQueue]):
-    def __init__(self, number : int, bearing : int, takeOffQueue : TakeOffQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, takeOffQueue : TakeOffQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Takeoff"
         self.takeOffQueue = takeOffQueue
 
@@ -26,7 +26,7 @@ class TakeOffRunway(Runway[TakeOffQueue]):
         return "Not implemented"
     
     def tick_update(self, curr_time: int, sim: "Simulation") -> None:
-        if self.free:
+        if self.free and not self._disabled:
             # Check if there's a plane waiting before trying to load
             if self.takeOffQueue.size > 0:
                 self.load(self.takeOffQueue)

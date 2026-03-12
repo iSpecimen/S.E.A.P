@@ -8,7 +8,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import json
+from pathlib import Path
 
 from SimSys.SimulatorControls.SystemController import SystemController
 
@@ -76,12 +76,17 @@ def getFullState(major: int, minor: int):
 
     file_path, file_name = controller.load_sim((major, minor))
 
-    with open(file_path, "r") as f:
-        data = json.load(f)
-        
-    print(file_path)
-    return data 
+    state_path = Path(file_path)
+    gz_path = state_path.with_suffix(state_path.suffix + ".gz")
 
+    if gz_path.exists():
+        #send compressed json directly to client
+        return FileResponse(path=gz_path, media_type="application/gzip", filename=gz_path.name)
+    if state_path.exists():
+        #fallback incase no compressed file exists for whatever reason
+        return FileResponse(path=state_path, media_type="text/plain; charset=utf-8", filename=state_path.name)
+
+    raise HTTPException(status_code=404, detail=f"State log not found for simulation {major}.{minor}.")
 #Returns final aggregated statistics for a completed simulation
 @app.get("/api/stats/{major}/{minor}")
 def getStatistics(major: int, minor: int):
@@ -151,6 +156,7 @@ async def create_sim_copy(major: int, minor: int, request: Request):
     runwayChanges = body.get("runway_changes", [])
     print(f"RUNWAY CHANGES FROM FRONTEND: {runwayChanges}")
     planeChanges = body.get("plane_changes", [])
+    
     try:
         logPath = controller.change_runway_config(
             version=(major, minor),

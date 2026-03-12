@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 #2:1 Ratio - takeoff queue should aim to be 2x size of landing queue
 
 class MixedRunway(Runway[Queue]):
-    def __init__(self, number : int, bearing : int, takeoffQueue : TakeOffQueue, landingQueue : HoldingPatternQueue):
-        super().__init__(number, bearing)
+    def __init__(self, number : int, bearing : int, takeoffQueue : TakeOffQueue, landingQueue : HoldingPatternQueue, status : str):
+        super().__init__(number, bearing, status)
         self.mode = "Mixed"
         self.takeOffQueue = takeoffQueue
         self.landingQueue = landingQueue
@@ -31,7 +31,7 @@ class MixedRunway(Runway[Queue]):
             self.expected_free_time = ceil(self._length / self.occupier._ground_speed)
 
     def tick_update(self, curr_time: int, sim: Simulation) -> None:
-        if self.free:
+        if self.free and not self._disabled:
             if self.landingQueue.size > 0 or self.takeOffQueue.size > 0:
                 self.load(self.landingQueue, self.takeOffQueue)
                 

@@ -6,6 +6,49 @@
 const BASE_URL = "http://localhost:8000";
 
 /**
+ * Parse given json lines into json object 
+ */
+function parseJsonLinesOrArray(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return []; //empty case
+
+  if (text.startsWith("[")) return JSON.parse(text);
+
+  return trimmed
+    .split(/\r?\n/) //split by line
+    .map((line) => line.trim()) //trim each line
+    .filter(Boolean) //removing empty lines
+    .map((line) => JSON.parse(line)); //finally parse each line using built in method
+}
+
+/**
+ * Decompress the gzip buffer
+ */
+async function decompressGzipArrayBuffer(buffer) {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("This browser cannot decompress gzip payloads.");
+  }
+
+  const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return new Response(stream).text();
+}
+
+/**
+ * Function to parse the state response from it's compressed form to decompressed
+ */
+async function parseStateResponse(res) {
+  const buffer = await res.arrayBuffer();
+
+  try {
+    const decoded = new TextDecoder("utf-8").decode(buffer);
+    return parseJsonLinesOrArray(decoded);
+  } catch (_) {
+    const decompressedText = await decompressGzipArrayBuffer(buffer);
+    return parseJsonLinesOrArray(decompressedText);
+  }
+}
+
+/**
  * POST /api/simulate
  * Sends start page inputs, waits for sim to finish.
  * Returns { major, minor, version, config }
@@ -85,7 +128,7 @@ export async function fetchFullState(major, minor) {
     throw new Error(err.detail || `Failed to fetch state (${res.status})`);
   }
 
-  return res.json();
+  return parseStateResponse(res);
 }
 
 /**
