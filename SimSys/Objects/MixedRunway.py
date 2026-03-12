@@ -31,7 +31,7 @@ class MixedRunway(Runway[Queue]):
             self.expected_free_time = ceil(self._length / self.occupier._ground_speed)
 
     def tick_update(self, curr_time: int, sim: Simulation) -> None:
-        if self.free:
+        if self.free and not self._disabled:
             if self.landingQueue.size > 0 or self.takeOffQueue.size > 0:
                 self.load(self.landingQueue, self.takeOffQueue)
                 

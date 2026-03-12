@@ -124,7 +124,8 @@ class SystemController():
                         else:
                             adapted_schedule[sch_tick].emergency_callsign.append(callsign)
 
-        print(adapted_schedule)
+        # print(adapted_schedule)  UNCOMMENT THIS IF YOU WANT TO SEE THE RUNWAY CHANGE CONFIG MAP THAT IS SENT TO SIMULATION CLASS 
+        
         newSim = Simulation(f"{maj}.{newest_minor}", adapted_schedule, inbound, outbound)
         self.sim_majors[maj][newest_minor] = newSim
         self.current_focus = (maj, newest_minor)

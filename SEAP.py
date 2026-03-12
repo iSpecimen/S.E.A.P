@@ -156,6 +156,7 @@ async def create_sim_copy(major: int, minor: int, request: Request):
     runwayChanges = body.get("runway_changes", [])
     print(f"RUNWAY CHANGES FROM FRONTEND: {runwayChanges}")
     planeChanges = body.get("plane_changes", [])
+    
     try:
         logPath = controller.change_runway_config(
             version=(major, minor),
