@@ -21,6 +21,7 @@ class Runway(ABC, Generic[Q]):
         self.expected_free_time : int = 0 #time until runway becomes free
         self._length = 10000 #in ft, used to calculate timings.
         self._disabled = (status != "Available")
+        self._default = status
 
     def load(self, queue : Q) -> None:
         if not self.free:
@@ -37,7 +38,7 @@ class Runway(ABC, Generic[Q]):
         self.occupier = None
         self.expected_free_time = 0
         self.free = True
-        self.status = "Available"
+        self.status = self._default
 
     @abstractmethod
     def to_string(self) -> str:
