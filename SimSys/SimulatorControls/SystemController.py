@@ -83,7 +83,7 @@ class SystemController():
         # Returns json file path
 
     # Takes a simulation version, runway changes, and emergency plane changes. 
-    def change_runway_config(self, version: tuple[int, int], r_changes: list[tuple[int,int,str,str]], p_changes: list[int, str]) -> str : # Creating Sim. Copies, x.1, x.2s and x.3s etc
+    def change_runway_config(self, version: tuple[int, int], r_changes: list[tuple[int,int,str,str]], p_changes: list[int, str], hptq_changes: list[tuple[int, int, int]]) -> str : # Creating Sim. Copies, x.1, x.2s and x.3s etc
         maj, mir = version
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
@@ -98,32 +98,59 @@ class SystemController():
         adapted_schedule = target_sim.user_config_schedule
         # print(adapted_schedule)
         inbound, outbound = target_sim.inbound_outbound()
+        if r_changes != None: 
+            for tick, runway_num, newmode, newstatus in r_changes:  # Added newstatus into configuration
+                # Find most recent config before this tick
+                previous_tick = max(t for t in adapted_schedule if t <= tick)
 
-        for tick, runway_num, newmode, newstatus in r_changes:  # Added newstatus into configuration
-            # Find most recent config before this tick
-            previous_tick = max(t for t in adapted_schedule if t <= tick)
+                base_config = adapted_schedule[previous_tick]
+                new_config = copy.deepcopy(base_config)
+                oldmode, oldstatus = new_config.runways[runway_num-1]
+                if oldmode == newmode and oldstatus == newstatus:
+                    raise KeyError(f"Runway {runway_num} config already set.")
 
-            base_config = adapted_schedule[previous_tick]
-            new_config = copy.deepcopy(base_config)
-            oldmode, oldstatus = new_config.runways[runway_num-1]
-            if oldmode == newmode and oldstatus == newstatus:
-                raise KeyError(f"Runway {runway_num} config already set.")
+                new_config.runways[runway_num-1] = (newmode, newstatus)   # If either one changes, means the runway needs to be set to new config. 
+                adapted_schedule[tick] = new_config
 
-            new_config.runways[runway_num-1] = (newmode, newstatus)   # If either one changes, means the runway needs to be set to new config. 
-            adapted_schedule[tick] = new_config
+                print(f"Added Runway change at tick {tick}")
 
-            print(f"Added change at tick {tick}")
+        if p_changes is not None:
+            for tick, callsign in p_changes:
 
-        if p_changes != None:
-            for i in range(len(p_changes)):
-                tick, callsign = p_changes[i] # Grab the changes from the input, and iterate through all changes. 
-                for sch_tick, old_config in adapted_schedule.items():
-                    if tick == sch_tick:
-                        if callsign in adapted_schedule[tick].emergency_callsign: # If there's not change then 
-                            raise KeyError (f"Plane {callsign} Emergency Config is already set to this.")
-                        else:
-                            adapted_schedule[sch_tick].emergency_callsign.append(callsign)
+                previous_tick = max(t for t in adapted_schedule if t <= tick)
+                base_config = adapted_schedule[previous_tick]
 
+                new_config = copy.deepcopy(base_config)
+
+                if new_config.emergency_callsign is None:
+                    new_config.emergency_callsign = []
+
+                if callsign in new_config.emergency_callsign:
+                    raise KeyError(f"Plane {callsign} already marked as emergency.")
+
+                new_config.emergency_callsign.append(callsign)
+
+                adapted_schedule[tick] = new_config
+
+                print(f"Emergency set for {callsign} at tick {tick}")
+
+        if hptq_changes is not None:
+            for tick, max_hq, max_tq in hptq_changes:
+
+                previous_tick = max(t for t in adapted_schedule if t <= tick)
+                base_config = adapted_schedule[previous_tick]
+
+                new_config = copy.deepcopy(base_config)
+
+                if new_config.max_hqueue_size == max_hq and new_config.max_tqueue_size == max_tq:
+                    raise KeyError("Queue limits already set to this.")
+
+                new_config.max_hqueue_size = max_hq
+                new_config.max_tqueue_size = max_tq
+
+                adapted_schedule[tick] = new_config
+
+                print(f"Queue limits changed at tick {tick}")
         # print(adapted_schedule)  UNCOMMENT THIS IF YOU WANT TO SEE THE RUNWAY CHANGE CONFIG MAP THAT IS SENT TO SIMULATION CLASS 
         
         newSim = Simulation(f"{maj}.{newest_minor}", adapted_schedule, inbound, outbound)

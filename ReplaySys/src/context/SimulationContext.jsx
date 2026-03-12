@@ -44,7 +44,8 @@ const createSimState = (config = {}) => ({
     playState: "paused",
 
     pendingRunwayChanges: {},
-
+    pendingPlaneChanges: {},
+    pendingHPTQChanges: {}
 }
 
 );
@@ -310,17 +311,35 @@ export function SimulationProvider({ children }) {
         const sim = simulations[activeTabID];
         if (sim?.major == null || sim?.minor == null) return;
 
-        const pending = sim.pendingRunwayChanges || {};
-        console.log("Pending contents:", JSON.stringify(pending));
-        console.log("Pending keys:", Object.keys(pending));
-        if (Object.keys(pending).length === 0) {
+        const runway_pending = sim.pendingRunwayChanges || {};
+        const plane_pending = sim.pendingPlaneChanges || {};
+        const hptq_pending = sim.pendingHPTQChanges || {};
+
+        console.log("Runway Pending contents:", JSON.stringify(runway_pending));
+        console.log("Runway Pending keys:", Object.keys(runway_pending));
+
+        console.log("Plane Pending contents:", JSON.stringify(plane_pending));
+        console.log("Plane Pending keys:", Object.keys(plane_pending));
+
+        console.log("HPTQ Pending contents:", JSON.stringify(hptq_pending));
+        console.log("HPTQ Pending keys:", Object.keys(hptq_pending));
+
+        if (Object.keys(runway_pending).length === 0) {
             console.log("No runway changes detected");
+            return;
+        }
+        if (Object.keys(plane_pending).length === 0) {
+            console.log("No plane changes detected");
+            return;
+        }
+        if (Object.keys(hptq_pending).length === 0) {
+            console.log("No maxhp or maxtq changes detected");
             return;
         }
 
         // Buildrunway_config directly from pending — no second filter
         const runway_config = [];
-        Object.entries(pending).forEach(([runwayID, changes]) => {
+        Object.entries(runway_pending).forEach(([runwayID, changes]) => {
             const id = parseInt(runwayID);
 
             // get current values
@@ -332,21 +351,51 @@ export function SimulationProvider({ children }) {
         });
 
         const plane_config = [];
+        Object.entries(pendingPlanes).forEach(([callsign, changes]) => {
+            const currentPlane =
+                sim.takeoffQueue.find(p => p.callsign === callsign) ||
+                sim.holdingPattern.find(p => p.callsign === callsign);
+
+            const isEmergency = changes.isEmergency ?? currentPlane?.isEmergency ?? false;
+
+            if (isEmergency) {
+                plane_config.push([sim.timelineSec, callsign]);
+            }
+        });
+
+        const hptq_config = [];
+        if (pendingQueues) {
+            const max_hq = pendingQueues.maxHolding ?? sim.maxWaitConfig?.maxWaitHolding;
+            const max_tq = pendingQueues.maxTakeoff ?? sim.maxWaitConfig?.maxWaitTakeoff;
+
+            hptq_config.push([sim.timelineSec, max_hq, max_tq]);
+        }
 
         if (runway_config.length === 0) {
-            console.log("No mode changes to send");
+            console.log("No runway changes to send");
+            return;
+        }
+        if (plane_config.length === 0) {
+            console.log("No plane changes to send");
+            return;
+        }
+        if (hptq_config.length === 0) {
+            console.log("No maxhptq changes to send");
             return;
         }
 
-        console.log("Sendingrunway_config:", runway_config);
+        console.log("Sending runway_config:", runway_config);
+        console.log("Sending plane_config:", plane_config);
+        console.log("Sending hptq_config:", hptq_config);
 
-        try {
+        try{ 
 
             const { major, minor, version } = await changeSimulation({
                 major: sim.major,
                 minor: sim.minor,
                 runway_config,
-                plane_config
+                plane_config,
+                hptq_config
             });
 
             const [stateLog, statistics] = await Promise.all([
@@ -469,10 +518,79 @@ export function SimulationProvider({ children }) {
                         ...sim.pendingRunwayChanges,
                         [runwayID]: {
                             ...sim.pendingRunwayChanges?.[runwayID],
+                            ...changes, 
+                        },
+                    },
+                },
+            };
+        });
+    }, [activeTabID]);
+
+    //  Called when: User sets a plane in Holding Pattern/ Takeoff queue to be in an emergency. 
+    // 
+    const updatePlane = useCallback((planeCallsign, changes) => {
+        if (!activeTabID) return;
+
+        setSimulations((prev) => {
+            const sim = prev[activeTabID];
+            if (!sim) return prev;
+
+            const updateList = (list = []) =>
+                list.map((p) =>
+                    p.callsign === planeCallsign ? { ...p, ...changes } : p
+                );
+
+            return {
+                ...prev,
+                [activeTabID]: {
+                    ...sim,
+
+                    // VISUAL UPDATE
+                    takeoffQueue: updateList(sim.takeoffQueue),
+                    holdingPattern: updateList(sim.holdingPattern),
+
+                    // PERSIST CHANGE FOR TIMELINE
+                    pendingPlaneChanges: {
+                        ...sim.pendingPlaneChanges,
+                        [planeCallsign]: {
+                            ...sim.pendingPlaneChanges?.[planeCallsign],
                             ...changes,
                         },
                     },
                 },
+            };
+        });
+    }, [activeTabID]);
+
+    //  Called when: User sets maxhq/tq size at a given tick. 
+    // 
+    const updateHPTQ = useCallback((changes) => {
+        if (!activeTabID) return;
+
+        setSimulations((prev) => {
+            const sim = prev[activeTabID];
+            if (!sim) return prev;
+
+            return {
+                ...prev,
+                [activeTabID]: {
+                    ...sim,
+
+                    // update UI immediately
+                    maxWaitConfig: {
+                        ...sim.maxWaitConfig,
+                        ...changes
+                    },
+
+                    // store pending change so it survives timeline seekToTick
+                    pendingHPTQChanges: {
+                        ...sim.pendingHPTQChanges,
+                        [sim.timelineSec]: {
+                            ...sim.pendingHPTQChanges?.[sim.timelineSec],
+                            ...changes
+                        }
+                    }
+                }
             };
         });
     }, [activeTabID]);
@@ -532,6 +650,8 @@ export function SimulationProvider({ children }) {
                 togglePlayPause,
                 seekToTick,
                 updateRunway,
+                updatePlane,
+                updateHPTQ,
                 commitRunwayChanges,
                 setPlaybackSpeed,
             }}

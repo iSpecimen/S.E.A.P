@@ -16,6 +16,7 @@ const MainPage = () => {
     const ctx = useSimulation();
     console.log("ALL CONTEXT KEYS:", Object.keys(ctx));
     console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
+
     //Reading from context
     const { activeSim, seekToTick, commitRunwayChanges } = useSimulation();
 
@@ -41,10 +42,7 @@ const MainPage = () => {
 
     // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
     const handleEmergencyToggle = (callsign, newState) => {
-    const updateList = (list) =>
-        list.map(f => f.callsign === callsign ? { ...f, isEmergency: newState } : f);
-    setTakeoffFlights(prev => updateList(prev));
-    setHoldingFlights(prev => updateList(prev));
+        updatePlane(callsign, { isEmergency: newState });
     };
 
 

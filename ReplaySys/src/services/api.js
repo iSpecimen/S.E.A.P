@@ -77,14 +77,15 @@ export async function startSimulation({ numRunways, inboundFlow, outboundFlow })
  * Sends a new runway config to run a new sim with.
  * Returns { major, minor, version, config }
  */
-export async function changeSimulation({ major, minor, runway_config, plane_config }) {
+export async function changeSimulation({ major, minor, runway_config, plane_config, hptq_config }) {
   console.log("Runway Changes:", runway_config);
   const res = await fetch(`${BASE_URL}/api/newsim/${major}/${minor}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       runway_changes: runway_config,
-      plane_config: plane_config
+      plane_config: plane_config,
+      hptq_config: hptq_config
     }),
   });
 

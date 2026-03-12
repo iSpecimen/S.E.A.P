@@ -153,15 +153,17 @@ async def create_sim_copy(major: int, minor: int, request: Request):
 
     # Runway mode/status list from UI
     # Example: [{"runway_id":0,"mode":"ARRIVAL","status":"OPEN"}, ...]
-    runwayChanges = body.get("runway_changes", [])
+    runwayChanges = body.get("runway_changes", None)
     print(f"RUNWAY CHANGES FROM FRONTEND: {runwayChanges}")
-    planeChanges = body.get("plane_changes", [])
-    
+    planeChanges = body.get("plane_changes", None)
+    hptqChanges = body.get("hptq_changes", None)
+
     try:
         logPath = controller.change_runway_config(
             version=(major, minor),
             r_changes=runwayChanges,
-            p_changes=planeChanges
+            p_changes=planeChanges,
+            hptq_changes = hptqChanges
         )
     except Exception as e:
         raise HTTPException(
