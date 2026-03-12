@@ -43,6 +43,8 @@ const createSimState = (config = {}) => ({
     timelineSec: 0,
     playState: "paused",
 
+    pendingRunwayChanges: {},
+
 }
 
 );
@@ -301,21 +303,38 @@ export function SimulationProvider({ children }) {
 
 
     const commitRunwayChanges = useCallback(async () => {
-        console.log("commitRunwayChanges called");
-        console.log("activeTabID:", activeTabID);
-        console.log("sim:", simulations[activeTabID]);
         if (!activeTabID) return;
         const sim = simulations[activeTabID];
         if (sim?.major == null || sim?.minor == null) return;
 
-        const runway_config = sim.runways.map((r) => ({
-            mode: r.mode,
-            status: r.status,
-            bearing: r.bearing ?? 90,
-            number: r.number ?? 1,
-        }));
+        const pending = sim.pendingRunwayChanges || {};
+        console.log("Pending contents:", JSON.stringify(pending));
+        console.log("Pending keys:", Object.keys(pending));
+        if (Object.keys(pending).length === 0) {
+            console.log("No runway changes detected");
+            return;
+        }
+
+        // Buildrunway_config directly from pending — no second filter
+        const runway_config = [];
+        Object.entries(pending).forEach(([runwayID, changes]) => {
+            if (changes.mode) {
+                runway_config.push([sim.timelineSec, parseInt(runwayID), changes.mode]);
+            }
+            if (changes.status) {
+                runway_config.push([sim.timelineSec, parseInt(runwayID), changes.status]);
+            }
+        });
+
+        if (runway_config.length === 0) {
+            console.log("No mode changes to send");
+            return;
+        }
+
+        console.log("Sendingrunway_config:", runway_config);
 
         try {
+
             const { major, minor, version } = await changeSimulation({
                 major: sim.major,
                 minor: sim.minor,
@@ -344,6 +363,7 @@ export function SimulationProvider({ children }) {
                     playState: "paused",
                     loading: false,
                     error: null,
+                    pendingRunwayChanges: {},  // Clear pending after commit
                 },
             }));
             setActiveTabID(tabID);
@@ -367,7 +387,6 @@ export function SimulationProvider({ children }) {
             }));
         }
     }, [activeTabID, simulations]);
-
     //
     // PLAYBACK LOOP
     //
@@ -427,16 +446,27 @@ export function SimulationProvider({ children }) {
     //
     const updateRunway = useCallback((runwayID, changes) => {
         if (!activeTabID) return;
-        setSimulations((prev) => ({
-            ...prev,
-            [activeTabID]: {
-                ...prev[activeTabID],
-                // Find the runway with matching ID and merge in the changes
-                runways: prev[activeTabID].runways.map((r) =>
-                    r.id === runwayID ? { ...r, ...changes } : r
-                ),
-            },
-        }));
+        setSimulations((prev) => {
+            const sim = prev[activeTabID];
+            return {
+                ...prev,
+                [activeTabID]: {
+                    ...sim,
+                    // Still update runways for visual feedback
+                    runways: sim.runways.map((r) =>
+                        r.id === runwayID ? { ...r, ...changes } : r
+                    ),
+                    // Also store the edit separately so it survives seekToTick
+                    pendingRunwayChanges: {
+                        ...sim.pendingRunwayChanges,
+                        [runwayID]: {
+                            ...sim.pendingRunwayChanges?.[runwayID],
+                            ...changes,
+                        },
+                    },
+                },
+            };
+        });
     }, [activeTabID]);
 
 
