@@ -12,7 +12,7 @@ from .Logger import Logger
 
 @dataclass
 class UserConfig:
-    runways: list[str | None] | None = None
+    runways: list[tuple[str, str] | None] | None = None   # To accommodate status changes, runway configs are now lists of tuples [mode, status]
     max_hqueue_size: int | float | None = None
     max_tqueue_size: int | float | None = None
     emergency_callsign: list[str | None] | None = None
@@ -33,7 +33,8 @@ class Simulation:
         if initial_config and initial_config.runways is not None:
             initial_runways = initial_config.runways
         else:
-            initial_runways = ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]
+            initial_runways = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing", "Available"), None, None, None, None, None, None, None]
+
         self.runways = self.generate_runway_config(initial_runways)
         
         # Apply initial queue limits if present at t=0
@@ -109,22 +110,22 @@ class Simulation:
                 self.schedule_departures[plane.mock_values(i)].append(plane)
                 self._allPlanes.append(plane)
 
-    def generate_runway_config(self, config: list[str | None] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway | None]:
+    def generate_runway_config(self, config: list[tuple[str,str] | None] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway | None]:
         if config is None: 
-            config = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing","Available"), None, None, None, None, None, None, None]
+            config = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing", "Available"), None, None, None, None, None, None, None]
         
         newrunways: list[TakeOffRunway | MixedRunway | LandingRunway | None] = []
 
         for i in range(10):
-            slot_type = config[i][0]
+            r_mode, r_status = config[i]
             runway_number = i + 1 
             
-            if slot_type == "Takeoff":
-                newrunways.append(TakeOffRunway(runway_number, 90, self.tqueue))
-            elif slot_type == "Mixed":
-                newrunways.append(MixedRunway(runway_number, 90, self.tqueue, self.hqueue))
-            elif slot_type == "Landing":
-                newrunways.append(LandingRunway(runway_number, 90, self.hqueue))
+            if r_mode == "Takeoff":
+                newrunways.append(TakeOffRunway(runway_number, 90, self.tqueue, r_status))
+            elif r_mode == "Mixed":
+                newrunways.append(MixedRunway(runway_number, 90, self.tqueue, self.hqueue, r_status))
+            elif r_mode == "Landing":
+                newrunways.append(LandingRunway(runway_number, 90, self.hqueue, r_status))
             else:
                 newrunways.append(None) 
 
@@ -160,9 +161,9 @@ class Simulation:
                     self.current_max_tqueue = 25
                     
                 if config.emergency_callsign is not None:
-                    for cllsign in config.emergency_callsign:
+                    for csign in config.emergency_callsign:
                         for p in self._allPlanes:
-                            if p.callsign == cllsign:
+                            if p.callsign == csign:
                                 p.declare_emergency()
                                 break
 
