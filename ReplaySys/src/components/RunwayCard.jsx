@@ -101,8 +101,8 @@ export default function RunwayCard({
 
             {/* Left Side: Plane Icon */}
             <div className="plane-icon-container">
-              <img src={currentPlaneImg} alt="plane" className="plane-image" />
-            </div>
+                {plane && <img src={currentPlaneImg} alt="plane" className="plane-image" />}
+              </div>
 
             {/* Right Side: Flight Info */}
             <div className="flight-info">
