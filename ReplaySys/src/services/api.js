@@ -40,7 +40,7 @@ export async function changeSimulation({ major, minor, runway_config, plane_conf
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      runway_config: runway_config,
+      runway_changes: runway_config,
       plane_config: plane_config
     }),
   });
