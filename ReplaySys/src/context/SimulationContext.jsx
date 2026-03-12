@@ -49,6 +49,8 @@ const createSimState = (config = {}) => ({
 
 );
 
+
+
 //Maps one tick's Logger class output to a component-friendly prop
 // Allows the components to easily access and render the information
 function frameToComponentState(frame) {
@@ -118,6 +120,7 @@ export function SimulationProvider({ children }) {
     const [simulations, setSimulations] = useState({});
     const [activeTabID, setActiveTabID] = useState(null);
     const playIntervalRef = useRef(null);
+    const playbackSpeedRef = useRef(1);
     const activeSim = activeTabID ? simulations[activeTabID] : null;
 
     // Frontend tab labelling
@@ -325,11 +328,11 @@ export function SimulationProvider({ children }) {
             const mode = changes.mode ?? current.mode;
             const status = changes.status ?? current.status;
 
-            runway_config.push([sim.timelineSec, id+1, mode, status]);
+            runway_config.push([sim.timelineSec, id + 1, mode, status]);
         });
 
         const plane_config = [];
-        
+
         if (runway_config.length === 0) {
             console.log("No mode changes to send");
             return;
@@ -433,7 +436,7 @@ export function SimulationProvider({ children }) {
                     [activeTabID]: { ...sim, timelineSec: nextTick, ...frame },
                 };
             });
-        }, 1000);
+        }, 1000 / playbackSpeedRef.current);
         // 1000ms = 1 real second per 1 sim second (real-time playback)
         // Change to 200 for 5x speed, 100 for 10x speed, etc.
 
@@ -473,6 +476,25 @@ export function SimulationProvider({ children }) {
             };
         });
     }, [activeTabID]);
+    
+
+    const setPlaybackSpeed = useCallback((speed) => {
+        playbackSpeedRef.current = speed;
+        // If currently playing, restart the interval with new speed
+        if (activeSim?.playState === "playing") {
+            // Toggle off and on to restart the interval with new speed
+            setSimulations((prev) => ({
+                ...prev,
+                [activeTabID]: { ...prev[activeTabID], playState: "paused" },
+            }));
+            setTimeout(() => {
+                setSimulations((prev) => ({
+                    ...prev,
+                    [activeTabID]: { ...prev[activeTabID], playState: "playing" },
+                }));
+            }, 50);
+        }
+    }, [activeTabID, activeSim?.playState]);
 
 
     // WHAT CAN BE ACCESSED BY WHAT AT A PARTICULAR TIME?
@@ -511,6 +533,7 @@ export function SimulationProvider({ children }) {
                 seekToTick,
                 updateRunway,
                 commitRunwayChanges,
+                setPlaybackSpeed,
             }}
         >
             {children}

@@ -192,3 +192,58 @@
 .timelineBtnPlay svg.playIcon {
   margin-left: 2px; 
 }
+
+
+.timelineControls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.timelineJump, .timelineSpeed {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.jumpInput {
+    width: 80px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.jumpBtn, .speedBtn {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.jumpBtn:hover, .speedBtn:hover {
+    background: #b8860b;
+}
+
+.speedInput {
+    width: 48px;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.speedLabel {
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+    min-width: 28px;
+}
