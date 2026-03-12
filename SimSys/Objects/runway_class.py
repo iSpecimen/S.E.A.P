@@ -20,12 +20,13 @@ class Runway(ABC, Generic[Q]):
         self.status : str = "Available"
         self.expected_free_time : int = 0 #time until runway becomes free
         self._length = 10000 #in ft, used to calculate timings.
+        self._disabled = False
 
     def load(self, queue : Q) -> None:
         if not self.free:
             raise RuntimeError("Cannot load runway: Currently in use!")
 
-        if queue.size != 0:
+        if queue.size != 0 and not self._disabled:
             self.occupier = queue.pop()
             self.free = False
             self.status = "Runway in use"
@@ -37,6 +38,15 @@ class Runway(ABC, Generic[Q]):
         self.expected_free_time = 0
         self.free = True
         self.status = "Available"
+
+    def disable_runway(self):
+        if self.occupier != None:
+            raise RuntimeError("Cannot Disable Runway: Runway currently occupied!")
+
+        self._disabled = True
+
+    def enable_runway(self):
+        self._disabled = False
 
     @abstractmethod
     def to_string(self) -> str:
