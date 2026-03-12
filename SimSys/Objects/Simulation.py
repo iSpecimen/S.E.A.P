@@ -111,12 +111,12 @@ class Simulation:
 
     def generate_runway_config(self, config: list[str | None] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway | None]:
         if config is None: 
-            config = ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]
+            config = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing","Available"), None, None, None, None, None, None, None]
         
         newrunways: list[TakeOffRunway | MixedRunway | LandingRunway | None] = []
 
         for i in range(10):
-            slot_type = config[i]
+            slot_type = config[i][0]
             runway_number = i + 1 
             
             if slot_type == "Takeoff":
@@ -127,6 +127,11 @@ class Simulation:
                 newrunways.append(LandingRunway(runway_number, 90, self.hqueue))
             else:
                 newrunways.append(None) 
+
+            if config[i][1] != "Aavailable":
+                newrunways[-1].disable_runway()
+            else:
+                newrunways[-1].enable_runway()
         
         active_count = sum(1 for r in newrunways if r is not None)
         print(f"--> Configured {active_count} Active Runways")
