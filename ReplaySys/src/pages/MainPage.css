@@ -255,6 +255,7 @@
     background-color: #265EA8;
     color: white;
     transition: opacity 0.2s;
+    font-family: "Segoe UI", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .commitChangesBtn:disabled {
