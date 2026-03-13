@@ -87,41 +87,56 @@ def getFullState(major: int, minor: int):
         return FileResponse(path=state_path, media_type="text/plain; charset=utf-8", filename=state_path.name)
 
     raise HTTPException(status_code=404, detail=f"State log not found for simulation {major}.{minor}.")
-#Returns final aggregated statistics for a completed simulation
+
+# Returns final aggregated statistics for a completed simulation
 @app.get("/api/stats/{major}/{minor}")
 def getStatistics(major: int, minor: int):
-    sim=getSimulation(major, minor)
-    #Initialise them all to 0
-    avgTakeoffDelay=0
-    avgTakeoffWait=0
-    avgHoldingWait=0
-    avgHoldingDelay=0
-    if sim.tqueue_processed:
-        avgTakeoffWait=(sim.tqueue_wait_times_sum / sim.tqueue_processed)
-        avgTakeoffDelay= (sim.tqueue_delay_sum / sim.tqueue_processed)
-    
-    if sim.hqueue_processed:
-        avgHoldingWait= (sim.hqueue_wait_times_sum / sim.hqueue_processed)
-        avgHoldingDelay= (sim.hqueue_delay_sum / sim.hqueue_processed)
-    
+    sim = getSimulation(major, minor)
 
+    # Initialize averages as 0 to prevent division by zero errors
+    avg_tq_wait_min = 0
+    avg_tq_delay_min = 0
+    avg_hq_wait_min = 0
+    avg_hq_delay_min = 0
+
+    # Calculate Departure Averages
+    if sim.tqueue_processed > 0:
+        avg_tq_wait_min = (sim.tqueue_wait_times_sum / sim.tqueue_processed) / 60.0
+        avg_tq_delay_min = (sim.tqueue_delay_sum / sim.tqueue_processed) / 60.0
+    
+    # Calculate Arrival Averages
+    if sim.hqueue_processed > 0:
+        avg_hq_wait_min = (sim.hqueue_wait_times_sum / sim.hqueue_processed) / 60.0
+        avg_hq_delay_min = (sim.hqueue_delay_sum / sim.hqueue_processed) / 60.0
 
     return {
         "version": f"{major}.{minor}",
+        
+        # Queue Size Stats (Actual Aircraft Counts)
         "max_tqueue_size": sim.max_tqueue_size,
         "max_hqueue_size": sim.max_hqueue_size,
-        "max_tqueue_wait": sim.max_tqueue_wait,
-        "max_hqueue_wait": sim.max_hqueue_wait,
-        "avg_tqueue_wait": round(avgTakeoffWait, 2),
-        "avg_hqueue_wait": round(avgHoldingWait, 2),
-        "max_tqueue_delay": sim.max_tqueue_delay,
-        "max_hqueue_delay": sim.max_hqueue_delay,
-        "avg_tqueue_delay": round(avgTakeoffDelay, 2),
-        "avg_hqueue_delay": round(avgHoldingDelay, 2),
+        
+        # Wait Time Stats (Minutes) - Matches Statistics.jsx "Avg Wait Time (min)"
+        "avg_tqueue_wait": round(avg_tq_wait_min, 2),
+        "avg_hqueue_wait": round(avg_hq_wait_min, 2),
+        "max_tqueue_wait": round(sim.max_tqueue_wait / 60.0, 2),
+        "max_hqueue_wait": round(sim.max_hqueue_wait / 60.0, 2),
+        
+        # Delay Stats (Minutes) - Matches Statistics.jsx "Avg Delay (min)"
+        "avg_tqueue_delay": round(avg_tq_delay_min, 2),
+        "avg_hqueue_delay": round(avg_hq_delay_min, 2),
+        "max_tqueue_delay": round(sim.max_tqueue_delay / 60.0, 2),
+        "max_hqueue_delay": round(sim.max_hqueue_delay / 60.0, 2),
+        
+        # Throughput and Incident Stats
         "tqueue_processed": sim.tqueue_processed,
         "hqueue_processed": sim.hqueue_processed,
         "cancelled_planes": sim.cancelled_planes_num,
         "diverted_planes": sim.diverted_planes_num,
+        
+        # Added configured limits for frontend UI reference
+        "config_max_twait": sim.current_max_twait / 60.0,
+        "config_max_hwait": sim.current_max_hwait / 60.0
     }
 
 
