@@ -74,20 +74,18 @@ function frameToComponentState(frame) {
         plane: r.plane,
     }));
 
-    // Takeoff Queue 
-    // Logger: frame.TakeoffQueue.planes to array of plane dictionaries
     const takeoffQueue = (frame.TakeoffQueue?.planes || []).map(mapPlane);
-
-
-
-    //Holding Pattern
-    // Maps the frame with the holding pattern planes to an array of plane dictionaries
     const holdingPattern = (frame.HoldingQueue?.planes || []).map(mapPlane);
-    console.log("Runway statuses:", frame.runways?.map(r => ({ status: r.status, mode: r.mode })));
 
-    return { runways, takeoffQueue, holdingPattern }
+    // Extract cancellation/diversion data
+    const cancellations = {
+        totalCancelled: frame.cancellations ?? 0,
+        totalDiverted: frame.diversions ?? 0,
+        events: frame.events ?? [],
+    };
+
+    return { runways, takeoffQueue, holdingPattern, cancellations };
 }
-
 function formatSecondsToTime(totalSeconds) {
     if (totalSeconds == null) return "--:--";
     const h = Math.floor(totalSeconds / 3600);

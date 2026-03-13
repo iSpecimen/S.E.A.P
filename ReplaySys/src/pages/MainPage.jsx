@@ -27,8 +27,9 @@ const MainPage = () => {
     const runways = activeSim?.runways || [];
     const takeoffQueue = activeSim?.takeoffQueue || [];
     const holdingPattern = activeSim?.holdingPattern || [];
-    const cancellations = activeSim?.cancellations || [];
+    const cancellations = activeSim?.cancellations || { totalCancelled: 0, totalDiverted: 0, events: [] };
     const statistics = activeSim?.statistics || {};
+
 
     const maxWaitConfig = activeSim?.maxWaitConfig || { maxWaitTakeoff: 30, maxWaitHolding: 30 };
 
@@ -41,7 +42,7 @@ const MainPage = () => {
         updatePlane(callsign, { isEmergency: newState });
     };
 
-    const hasPendingChanges = 
+    const hasPendingChanges =
         Object.keys(activeSim?.pendingRunwayChanges || {}).length > 0 ||
         Object.keys(activeSim?.pendingPlaneChanges || {}).length > 0 ||
         Object.keys(activeSim?.pendingHPTQChanges || {}).length > 0;
@@ -150,8 +151,11 @@ const MainPage = () => {
                 {/*Right Side*/}
                 <section className="rightSidebar">
                     <div className="Cancellations">
-                        <Cancellations events={activeSim?.cancellations || []}></Cancellations>
-
+                        <Cancellations
+                            events={cancellations.events}
+                            totalCancelled={cancellations.totalCancelled}
+                            totalDiverted={cancellations.totalDiverted}
+                        />
                     </div>
                     <div className="Statistics">
                         <Statistics
