@@ -1,9 +1,12 @@
 import React from 'react';
 import './FlightQueue.css';
+import { useSimulation } from '../context/SimulationContext';
 
 export default function FlightQueue({ title, columns, data = [], onEmergencyToggle }) {
   const minRows = 10;
   const emptyRowsCount = Math.max(0, minRows - data.length);
+  const { activeSim } = useSimulation();
+  const isPlaying = activeSim?.playState === "playing";
 
   return (
     <div className="flight-table-container">
@@ -17,8 +20,8 @@ export default function FlightQueue({ title, columns, data = [], onEmergencyTogg
           </thead>
           <tbody>
             {data.map((flight, i) => (
-              <tr 
-                key={`${flight.callsign}-${i}`} 
+              <tr
+                key={`${flight.callsign}-${i}`}
                 className={`flight-row ${flight.isEmergency ? 'emergency-active' : ''}`}
               >
                 <td>{flight.callsign}</td>
@@ -31,11 +34,12 @@ export default function FlightQueue({ title, columns, data = [], onEmergencyTogg
                     <div className="emergency-control">
                       <span>EMERGENCY</span>
                       <label className="switch">
-                        <input 
-                          type="checkbox" 
-                          checked={!!flight.isEmergency} 
-                          onChange={() => onEmergencyToggle(flight.callsign, !flight.isEmergency)}
-                        />
+                        <input
+    type="checkbox"
+    checked={!!flight.isEmergency}
+    disabled={isPlaying || !onEmergencyToggle}
+    onChange={() => onEmergencyToggle?.(flight.callsign, !flight.isEmergency)}
+/>
                         <span className="slider"></span>
                       </label>
                     </div>

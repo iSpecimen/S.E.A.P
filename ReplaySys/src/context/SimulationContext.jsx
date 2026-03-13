@@ -104,7 +104,7 @@ function mapPlane(plane) {
         fuel: plane._fuel_seconds,
         speed: plane._ground_speed,
         delayed: plane._delayed,
-        emergency: plane._emergency,
+        isEmergency: plane._emergency,
     };
 }
 
@@ -294,15 +294,19 @@ export function SimulationProvider({ children }) {
     //togglePlayPause flips between 'playing' and 'paused'
 
     const togglePlayPause = useCallback(() => {
+        console.log("togglePlayPause called, activeTabID:", activeTabID);
         if (!activeTabID) return;
-        setSimulations((prev) => ({
-            ...prev,
-            [activeTabID]: {
-                ...prev[activeTabID],
-                playState:
-                    prev[activeTabID].playState === "playing" ? "paused" : "playing",
-            },
-        }));
+        setSimulations((prev) => {
+            console.log("Current playState:", prev[activeTabID]?.playState);
+            return {
+                ...prev,
+                [activeTabID]: {
+                    ...prev[activeTabID],
+                    playState:
+                        prev[activeTabID].playState === "playing" ? "paused" : "playing",
+                },
+            };
+        });
     }, [activeTabID]);
 
 
@@ -315,87 +319,53 @@ export function SimulationProvider({ children }) {
         const plane_pending = sim.pendingPlaneChanges || {};
         const hptq_pending = sim.pendingHPTQChanges || {};
 
-        console.log("Runway Pending contents:", JSON.stringify(runway_pending));
-        console.log("Runway Pending keys:", Object.keys(runway_pending));
+        // Only return if NOTHING changed
+        const hasAny = Object.keys(runway_pending).length > 0
+            || Object.keys(plane_pending).length > 0
+            || Object.keys(hptq_pending).length > 0;
 
-        console.log("Plane Pending contents:", JSON.stringify(plane_pending));
-        console.log("Plane Pending keys:", Object.keys(plane_pending));
-
-        console.log("HPTQ Pending contents:", JSON.stringify(hptq_pending));
-        console.log("HPTQ Pending keys:", Object.keys(hptq_pending));
-
-        if (Object.keys(runway_pending).length === 0) {
-            console.log("No runway changes detected");
-            return;
-        }
-        if (Object.keys(plane_pending).length === 0) {
-            console.log("No plane changes detected");
-            return;
-        }
-        if (Object.keys(hptq_pending).length === 0) {
-            console.log("No maxhp or maxtq changes detected");
+        if (!hasAny) {
+            console.log("No changes detected");
             return;
         }
 
-        // Buildrunway_config directly from pending — no second filter
+        // Build runway_config
         const runway_config = [];
         Object.entries(runway_pending).forEach(([runwayID, changes]) => {
             const id = parseInt(runwayID);
-
-            // get current values
             const current = sim.runways[id];
             const mode = changes.mode ?? current.mode;
             const status = changes.status ?? current.status;
-
             runway_config.push([sim.timelineSec, id + 1, mode, status]);
         });
 
+        // Build plane_config
         const plane_config = [];
-        Object.entries(pendingPlanes).forEach(([callsign, changes]) => {
-            const currentPlane =
-                sim.takeoffQueue.find(p => p.callsign === callsign) ||
-                sim.holdingPattern.find(p => p.callsign === callsign);
-
-            const isEmergency = changes.isEmergency ?? currentPlane?.isEmergency ?? false;
-
-            if (isEmergency) {
+        Object.entries(plane_pending).forEach(([callsign, changes]) => {
+            if (changes.isEmergency) {
                 plane_config.push([sim.timelineSec, callsign]);
             }
         });
 
+        // Build hptq_config
         const hptq_config = [];
-        if (pendingQueues) {
-            const max_hq = pendingQueues.maxHolding ?? sim.maxWaitConfig?.maxWaitHolding;
-            const max_tq = pendingQueues.maxTakeoff ?? sim.maxWaitConfig?.maxWaitTakeoff;
-
-            hptq_config.push([sim.timelineSec, max_hq, max_tq]);
-        }
-
-        if (runway_config.length === 0) {
-            console.log("No runway changes to send");
-            return;
-        }
-        if (plane_config.length === 0) {
-            console.log("No plane changes to send");
-            return;
-        }
-        if (hptq_config.length === 0) {
-            console.log("No maxhptq changes to send");
-            return;
-        }
+        Object.entries(hptq_pending).forEach(([tick, changes]) => {
+            const max_hq = changes.maxWaitHolding ?? sim.maxWaitConfig?.maxWaitHolding;
+            const max_tq = changes.maxWaitTakeoff ?? sim.maxWaitConfig?.maxWaitTakeoff;
+            hptq_config.push([parseInt(tick), max_hq, max_tq]);
+        });
 
         console.log("Sending runway_config:", runway_config);
         console.log("Sending plane_config:", plane_config);
         console.log("Sending hptq_config:", hptq_config);
 
-        try{ 
-
+        try {
             const { major, minor, version } = await changeSimulation({
                 major: sim.major,
                 minor: sim.minor,
                 runway_config,
                 plane_config,
-                hptq_config
+                hptq_config,
             });
 
             const [stateLog, statistics] = await Promise.all([
@@ -420,7 +390,9 @@ export function SimulationProvider({ children }) {
                     playState: "paused",
                     loading: false,
                     error: null,
-                    pendingRunwayChanges: {},  // Clear pending after commit
+                    pendingRunwayChanges: {},
+                    pendingPlaneChanges: {},
+                    pendingHPTQChanges: {},
                 },
             }));
             setActiveTabID(tabID);
@@ -444,26 +416,15 @@ export function SimulationProvider({ children }) {
             }));
         }
     }, [activeTabID, simulations]);
-    //
-    // PLAYBACK LOOP
-    //
-    // This useEffect fires whenever playState or stateLog changes.
-    // When playState is "playing", it starts a setInterval that:
-    //   - Advances timelineSec by 1 every real second
-    //   - Calls frameToComponentState on the new tick
-    //   - Updates the derived fields (runways, takeoffQueue, holdingPattern)
-    //   - Auto-pauses when it reaches the end (tick 86399)
-    //
-    // When playState is "paused", it clears the interval (stops advancing).
-    //
+
     useEffect(() => {
-        // Always clear any existing interval first
+        console.log("Playback useEffect fired, playState:", activeSim?.playState, "hasStateLog:", !!activeSim?.stateLog);
+
         if (playIntervalRef.current) {
             clearInterval(playIntervalRef.current);
             playIntervalRef.current = null;
         }
 
-        // Only start the interval if we're actually playing with data loaded
         if (activeSim?.playState !== "playing" || !activeSim?.stateLog) return;
 
         playIntervalRef.current = setInterval(() => {
@@ -473,12 +434,10 @@ export function SimulationProvider({ children }) {
 
                 const nextTick = sim.timelineSec + 1;
 
-                // Reached the end of the 24-hour simulation — auto-pause
                 if (nextTick >= sim.stateLog.length) {
                     return { ...prev, [activeTabID]: { ...sim, playState: "paused" } };
                 }
 
-                // Extract the next frame and update
                 const frame = frameToComponentState(sim.stateLog[nextTick]);
                 return {
                     ...prev,
@@ -486,16 +445,11 @@ export function SimulationProvider({ children }) {
                 };
             });
         }, 1000 / playbackSpeedRef.current);
-        // 1000ms = 1 real second per 1 sim second (real-time playback)
-        // Change to 200 for 5x speed, 100 for 10x speed, etc.
 
-        // Cleanup: clear interval when this effect re-runs 
         return () => {
             if (playIntervalRef.current) clearInterval(playIntervalRef.current);
         };
     }, [activeTabID, activeSim?.playState, activeSim?.stateLog]);
-
-
     //  Called when: User changes a runway's mode/status via dropdown
     //  BEFORE the simulation runs (or while paused for config branching).
     //
@@ -518,7 +472,7 @@ export function SimulationProvider({ children }) {
                         ...sim.pendingRunwayChanges,
                         [runwayID]: {
                             ...sim.pendingRunwayChanges?.[runwayID],
-                            ...changes, 
+                            ...changes,
                         },
                     },
                 },
@@ -594,7 +548,7 @@ export function SimulationProvider({ children }) {
             };
         });
     }, [activeTabID]);
-    
+
 
     const setPlaybackSpeed = useCallback((speed) => {
         playbackSpeedRef.current = speed;
