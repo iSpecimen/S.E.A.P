@@ -28,7 +28,6 @@ export default function RunwayCard({
   runwayID,
   runwayName = "runway 1",
   callSign = "N/A",
-  fuelLevel = 20,
   defaultRemainingTime = 0,
   initialMode = "Mixed",
   initialStatus = "AVAILABLE",
@@ -51,6 +50,7 @@ export default function RunwayCard({
   const isLocked = isPlaying || isInUse;
 
   const plane = runway?.plane;
+
   const fuelMinutes = plane ? Math.floor(plane._fuel_seconds / 60) : null;
 
   const timeRemaining = runway?.expectedFreeTime ?? 0;
@@ -64,15 +64,15 @@ export default function RunwayCard({
 
 
 
-  const getFuelImage = (level) => {
-    if (level <= 20) return planeFuelLow;
-    if (level <= 40) return planeFuelLowMid;
-    if (level <= 60) return planeFuelMid;
-    if (level <= 80) return planeFuelHighMid;
+  const getFuelImage = (fuelMin) => {
+    if (fuelMin <= 12) return planeFuelLow;
+    if (fuelMin <= 24) return planeFuelLowMid;
+    if (fuelMin <= 36) return planeFuelMid;
+    if (fuelMin <= 48) return planeFuelHighMid;
     return planeFuelHigh;
   };
 
-  const currentPlaneImg = getFuelImage(fuelLevel);
+  const currentPlaneImg = getFuelImage(fuelMinutes);
 
   // 2. Create a "Live Color" variable 
   // This logic runs every time the component renders
@@ -101,8 +101,8 @@ export default function RunwayCard({
 
             {/* Left Side: Plane Icon */}
             <div className="plane-icon-container">
-              <img src={currentPlaneImg} alt="plane" className="plane-image" />
-            </div>
+                {plane && <img src={currentPlaneImg} alt="plane" className="plane-image" />}
+              </div>
 
             {/* Right Side: Flight Info */}
             <div className="flight-info">
