@@ -83,6 +83,7 @@
 
 /* 2. The Popup Box: Using your exact Runway Card values */
 .flight-actions-popup {
+  font-family: 'Cairo', sans-serif;
   position: absolute;
   top: -10px;      /* Slight offset to align better with the row */
   right: 110%;    /* Pops out to the left of the table */

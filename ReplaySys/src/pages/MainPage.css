@@ -248,24 +248,75 @@
 .commitChangesBtn {
     position: relative;
     z-index: 10;
-    margin: 0.5rem auto;
-    padding: 0.5rem 1.5rem;
+    margin: 8px auto;
+    display: block;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
     font-weight: 600;
-    border: none;
+    background: rgb(34, 59, 93);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
+    padding: 9px 10px;
+    color: #ffffff;
     cursor: pointer;
-    background-color: #2d0aac;
-    color: white;
-    transition: opacity 0.2s;
-    font-family: "Segoe UI", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 0 20px 4px rgba(160, 185, 210, 0.15),
+                0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.commitChangesBtn:hover {
+    background: rgba(61, 90, 128, 0.9);
+    box-shadow: 0 0 30px 8px rgba(160, 185, 210, 0.25),
+                0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .commitChangesBtn:disabled {
-    background-color: #A0A0A0;
+    opacity: 0.4;
     cursor: not-allowed;
-    opacity: 0.6;
+    pointer-events: none;
+    box-shadow: none;
 }
 
-.commitChangesBtn:not(:disabled):hover {
-    opacity: 0.85;
+.commitOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 90, 128, 0.35);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.commitPopup {
+    background: rgba(61, 90, 128, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 0 50px 14px rgba(160, 185, 210, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3);
+    animation: glow 3.5s ease-in-out infinite;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    color: #c8d2de;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.commitSpinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(200, 210, 222, 0.2);
+    border-top-color: #c8d2de;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
