@@ -12,24 +12,25 @@ from .Logger import Logger
 
 @dataclass
 class UserConfig:
-    runways: list[tuple[str, str] | None] | None = None   # To accommodate status changes, runway configs are now lists of tuples [mode, status]
-    max_hqueue_size: int | float | None = None
-    max_tqueue_size: int | float | None = None
+    runways: list[tuple[str, str] | None] | None = None   
+    max_hqueue_wait: int | float | None = None
+    max_tqueue_wait: int | float | None = None
     emergency_callsign: list[str | None] | None = None
 
 class Simulation:
-    def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15):  # Added sim_name parameter. For multi-sim handling. "1.0, 1.1, 2.0.. etc"
+    def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15):
         # Components
         self.sim_name = sim_name
         self.hqueue = HoldingPatternQueue(2000)
         self.tqueue = TakeOffQueue()
         
         # Save the schedule of configuration changes
-        self.user_config_schedule: dict[int, UserConfig]= user_config
+        self.user_config_schedule: dict[int, UserConfig] = user_config
         self.inbound_flow = inbound_rate or 15
         self.outbound_flow = outbound_rate or 15
+        
         # Initialize runways using the configuration at t=0 (10-slot map)
-        initial_config = self.user_config_schedule[0]
+        initial_config = self.user_config_schedule.get(0)
         if initial_config and initial_config.runways is not None:
             initial_runways = initial_config.runways
         else:
@@ -37,12 +38,14 @@ class Simulation:
 
         self.runways = self.generate_runway_config(initial_runways)
         
-        # Apply initial queue limits if present at t=0
+        self.current_max_hwait = 1800
+        self.current_max_twait = 1800
+
         if initial_config:
-            if initial_config.max_hqueue_size is not None:
-                self.current_max_hqueue = initial_config.max_hqueue_size
-            if initial_config.max_tqueue_size is not None:
-                self.current_max_tqueue = initial_config.max_tqueue_size
+            if initial_config.max_hqueue_wait is not None:
+                self.current_max_hwait = initial_config.max_hqueue_wait
+            if initial_config.max_tqueue_wait is not None:
+                self.current_max_twait = initial_config.max_tqueue_wait
         
         self.max_tqueue_size: int = 0
         self.max_hqueue_size: int = 0
@@ -72,7 +75,7 @@ class Simulation:
         # Dynamic schedule generation
         self._generate_schedule(self.inbound_flow, self.outbound_flow)
 
-    def get_state_log(self): # Ati - Just don't want to break encapsulation so added method for getting logger data.
+    def get_state_log(self): 
         return self._logger.get_file_data()
     
     def inbound_outbound(self):
@@ -121,7 +124,7 @@ class Simulation:
                 newrunways.append(None) 
                 continue 
 
-            r_mode, r_status = config[i]  # Breaks when config[i] is None, so has the safety before this. 
+            r_mode, r_status = config[i]  
             
             runway_number = i + 1 
             
@@ -154,15 +157,11 @@ class Simulation:
                     self.runways = self.generate_runway_config(config.runways)
                     print(f"Runways Configured at tick {t}")
                     
-                if config.max_hqueue_size is not None:
-                    self.current_max_hqueue = config.max_hqueue_size
-                else:
-                    self.current_max_hqueue = 25   # Ati - Sometimes is None, and then next for loop breaks with undefined current
+                if config.max_hqueue_wait is not None:
+                    self.current_max_hwait = config.max_hqueue_wait
                     
-                if config.max_tqueue_size is not None:
-                    self.current_max_tqueue = config.max_tqueue_size
-                else:
-                    self.current_max_tqueue = 25
+                if config.max_tqueue_wait is not None:
+                    self.current_max_twait = config.max_tqueue_wait
                     
                 if config.emergency_callsign is not None:
                     for csign in config.emergency_callsign:
@@ -172,18 +171,12 @@ class Simulation:
                                 break
 
             for p in self.schedule_arrivals[t]:
-                if self.hqueue.size >= self.current_max_hqueue:
-                    self.diverted_planes_num += 1
-                else:
-                    p._queue_join_time = t
-                    self.hqueue.push(p)
+                p._queue_join_time = t
+                self.hqueue.push(p)
 
             for p in self.schedule_departures[t]:
-                if self.tqueue.size >= self.current_max_tqueue:
-                    self.cancelled_planes_num += 1
-                else:
-                    p._queue_join_time = t
-                    self.tqueue.push(p)
+                p._queue_join_time = t
+                self.tqueue.push(p)
 
             self.max_tqueue_size = max(self.max_tqueue_size, self.tqueue.size)
             self.max_hqueue_size = max(self.max_hqueue_size, self.hqueue.size)
@@ -233,10 +226,20 @@ class Simulation:
         self._logger.clear_log_file()
 
 if __name__ == "__main__":
+    # Defining the 1-minute (60 seconds) wait limit in the initial configuration
     initial_map = {
         0: UserConfig(
-            runways=["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]
+            runways=[
+                ("Takeoff", "Available"), 
+                ("Mixed", "Available"), 
+                ("Landing", "Available"), 
+                None, None, None, None, None, None, None
+            ],
+            max_hqueue_wait=1800,
+            max_tqueue_wait=1800
         )
     }
-    sim = Simulation("Final_Test", initial_map, inbound_rate=40, outbound_rate=40)
+    
+    # Initialize and run simulation with the new 1-minute wait constraints
+    sim = Simulation("One_Minute_Wait_Test", initial_map, inbound_rate=60, outbound_rate=60)
     sim.run()

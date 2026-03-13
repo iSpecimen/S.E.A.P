@@ -142,11 +142,11 @@ class SystemController():
 
                 new_config = copy.deepcopy(base_config)
 
-                if new_config.max_hqueue_size == max_hq and new_config.max_tqueue_size == max_tq:
+                if new_config.max_hqueue_wait == max_hq and new_config.max_tqueue_wait == max_tq:
                     raise KeyError("Queue limits already set to this.")
 
-                new_config.max_hqueue_size = max_hq
-                new_config.max_tqueue_size = max_tq
+                new_config.max_hqueue_wait = max_hq
+                new_config.max_tqueue_wait = max_tq
 
                 adapted_schedule[tick] = new_config
 

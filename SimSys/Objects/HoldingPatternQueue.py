@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .plane import Plane # type: ignore[attr-defined]
-    from .Logger import Logger # type: ignore[attr-defined]
+    from .plane import Plane 
+    from .Logger import Logger 
     from .Simulation import Simulation
 
 from SimSys.Objects.queue_class import Queue, QueueNode
@@ -11,26 +11,21 @@ from SimSys.Objects.queue_class import Queue, QueueNode
 class HoldingPatternQueue(Queue):
     def __init__(self, base_altitude : float):
         super().__init__()
-
         self.base_altitude : float = base_altitude
-        self.curr_max_altitude : float = 0 #Default to 0 if empty
+        self.curr_max_altitude : float = 0 
 
-    #adding 1000ft of vertical separation
     def push(self, plane: Plane) -> None: 
         if self.size == 0:
             self.curr_max_altitude = self.base_altitude
         else:
             self.curr_max_altitude += 1000
-        
         super().push(plane)
 
-    #decreasing maximum altitude
     def pop(self) -> Plane:
         if self.size == 1:
             self.curr_max_altitude = 0
         else:
             self.curr_max_altitude -= 1000
-        
         return super().pop()
     
     def __addToTop(self, plane : Plane):
@@ -42,7 +37,6 @@ class HoldingPatternQueue(Queue):
         else:
             self._head = QueueNode(plane, None, None)
             self._tail = self._head
-
         self.size += 1
     
     def tick_update(self, curr_time: int, sim: Simulation, logger : Logger) -> None:
@@ -52,8 +46,13 @@ class HoldingPatternQueue(Queue):
             plane = next_item.val
             plane.update_litres()
 
-            if plane.get_mins_left() < 10:
-                logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} popped and diverted. Fuel critically low (<10 mins)!")
+            if (curr_time - plane._queue_join_time) > sim.current_max_hwait:
+                logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} diverted. Exceeded max wait time ({sim.current_max_hwait}s).")
+                sim.diverted_planes_num += 1
+                self.remove(next_item)
+            
+            elif plane.get_mins_left() < 10:
+                logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} diverted. Fuel critically low (<10 mins)!")
                 sim.diverted_planes_num += 1
                 self.remove(next_item)
                 
@@ -68,14 +67,9 @@ class HoldingPatternQueue(Queue):
                     plane._emergency_handled = True
 
             next_item = nxt
-
-    
+            
     def get_json_dict(self) -> dict:
         return {"Not": "Implemented"}
     
     def to_string(self) -> str:
         return "Not Implemented"
-
-
-
-        
