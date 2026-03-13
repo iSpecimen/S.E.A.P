@@ -21,6 +21,7 @@ class TakeOffQueue(Queue):
             if (curr_time - plane._queue_join_time) > sim.current_max_twait:
                 logger.add_event_log(curr_time, f"CANCELLATION: {plane.callsign} cancelled. Exceeded max wait time ({sim.current_max_twait}s).")
                 sim.cancelled_planes_num += 1
+                sim.add_cancellation_diversion_event(curr_time, plane.callsign, "Cancellation")
                 self.remove(next_item)
 
             next_item = nxt

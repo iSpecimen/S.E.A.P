@@ -1,6 +1,5 @@
 import random
 
-
 class Plane:
     def __init__(self, callsign: str, is_arrival: bool, scheduled_time: int):
         self.callsign: str = callsign
@@ -8,15 +7,12 @@ class Plane:
         self.origin: str = "???"
         self.destination: str = "???"
         
-
-        # UML suggests these need to be private, but for scheduling they need to be updated
         self._scheduled_time: int = scheduled_time
         self._system_time: int = scheduled_time
 
         self._is_arrival: bool = is_arrival
         self._altitude: float = 10000.0 if is_arrival else 0.0
 
-        # Speed assigned between 166 and 333 ft/s to yield 30-60s runway times
         self._ground_speed: float = random.uniform(166, 333)
 
         self._delayed: bool = False

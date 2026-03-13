@@ -9,24 +9,22 @@ import uuid
 import gzip
 import shutil
 
-DELETE_LOGS : bool = False #Set to False to keep the logs after the simulation has ran
+DELETE_LOGS : bool = False
 
 class Logger:
-    def __init__(self, sim_name: str):  # Added sim_name str for multi-sim handling, "1.0, 1.1, 2.0.. etc"
+    def __init__(self, sim_name: str):
         self.sim_name = sim_name
-        #schemas
         self.__plane_schema : tuple = ("callsign","operator","origin","destination", "_scheduled_time","_altitude","_fuel_seconds","_ground_speed","_delayed","_emergency")
-        self.__HoldingQueue : tuple = ("base_altitude", "planes") #planeIDs will be in queue order
-        self.__TakeoffQueue : tuple = ("planes",) #planeIDs will be in queue order
-        self.__runways : tuple = ("runways",) #will just hold array of runways
-        self.__runwaySchema : tuple = ("mode", "status", "plane", "bearing", "number", "expected_free_time") # for each runway
+        self.__HoldingQueue : tuple = ("base_altitude", "planes")
+        self.__TakeoffQueue : tuple = ("planes",)
+        self.__runways : tuple = ("runways",)
+        self.__runwaySchema : tuple = ("mode", "status", "plane", "bearing", "number", "expected_free_time")
 
         self.__plane_get = attrgetter(*self.__plane_schema)
         self.__runway_attr_get = attrgetter(
             "mode", "status", "bearing", "number", "expected_free_time"
         )   
         
-        # Added sim_name to be included run_id, easier to reference json file in SystemController
         self.run_id = f"{self.sim_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
         
         log_dir = Path("logs")
@@ -45,7 +43,7 @@ class Logger:
         self._dumps = json.dumps
         self._compressed = False
 
-    def get_file_data(self) -> tuple[str, str]: # Ati - I don't to break encapsulation, so added public getter for log file data.
+    def get_file_data(self) -> tuple[str, str]:
         return (self._file_path, self._file_name)
     
     def _queue_planes_as_dicts(self, q):
@@ -60,8 +58,7 @@ class Logger:
     def rows_to_dicts(schema, rows):
         return [dict(zip(schema, row)) for row in rows]
 
-    #Note: differs from UML because creating many dictionaries at runtime is resource intensive
-    def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway]) -> None:
+    def add_state_log(self, tick : int, holding_pattern : HoldingPatternQueue, takeoff_queue : TakeOffQueue, runways : list[Runway], cancellations: int, diversions: int, recent_events: list[dict]) -> None:
         self._log_index[tick] = self._log_offset
 
         holding_values = [
@@ -90,7 +87,10 @@ class Logger:
             "tick": tick,
             "HoldingQueue": dict(zip(self.__HoldingQueue, holding_values)),
             "TakeoffQueue": dict(zip(self.__TakeoffQueue, takeoff_values)),
-            "runways": self.rows_to_dicts(self.__runwaySchema, runway_rows)
+            "runways": self.rows_to_dicts(self.__runwaySchema, runway_rows),
+            "cancellations": cancellations,
+            "diversions": diversions,
+            "events": recent_events
         }
 
         json_obj = self._dumps(payload, separators=(",", ":"))
@@ -114,8 +114,6 @@ class Logger:
         encoded_line = self._dumps(line, separators=(",", ":")).encode("utf-8") + b"\n"
         self._file_event.write(encoded_line)
 
-
-    #usage: get_state_logs_as_json(tick=x) OR get_sate_logs(lower_bound = x, upper_bound = x) OR get_state_logs() (entire log - NOT RECOMENDED! just pass the entire file at that point)
     def get_state_logs_as_json(self, tick : int | None = None, lower_bound : int | None = None, upper_bound : int | None = None) -> str:
         if self._last_logged_tick < 0:
             raise ValueError("No state logs are available.")
@@ -129,7 +127,7 @@ class Logger:
         if tick is not None and (lower_bound is not None or upper_bound is not None):
             raise ValueError("Provide either tick OR (lower_bound and upper_bound), not both.")
 
-        if tick is not None: #specific tick
+        if tick is not None:
             if tick < 0 or tick > self._last_logged_tick:
                 raise ValueError("Tick is out of logged range.")
 
@@ -143,7 +141,7 @@ class Logger:
                 file_obj.seek(start_offset)
                 data = file_obj.read(end_offset - start_offset)
             return data.decode("utf-8").rstrip("\n")
-        else: #logs within given range
+        else:
             if lower_bound is None or upper_bound is None:
                 raise ValueError("Both lower_bound and upper_bound are required.")
             if lower_bound < 0 or upper_bound < 0 or lower_bound > upper_bound:
@@ -169,7 +167,6 @@ class Logger:
         self._file_log.close()
         self._file_event.close()
 
-        # Compress after closing the JSON array so .jsonl.gz is complete/valid.
         gz_path = self._file_path.with_suffix(self._file_path.suffix + ".gz")
         with open(self._file_path, "rb") as f_in:
             with gzip.open(gz_path, "wb") as f_out:

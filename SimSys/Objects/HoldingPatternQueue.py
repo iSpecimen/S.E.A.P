@@ -49,11 +49,13 @@ class HoldingPatternQueue(Queue):
             if (curr_time - plane._queue_join_time) > sim.current_max_hwait:
                 logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} diverted. Exceeded max wait time ({sim.current_max_hwait}s).")
                 sim.diverted_planes_num += 1
+                sim.add_cancellation_diversion_event(curr_time, plane.callsign, "Diversion")
                 self.remove(next_item)
             
             elif plane.get_mins_left() < 10:
                 logger.add_event_log(curr_time, f"DIVERSION: {plane.callsign} diverted. Fuel critically low (<10 mins)!")
                 sim.diverted_planes_num += 1
+                sim.add_cancellation_diversion_event(curr_time, plane.callsign, "Diversion")
                 self.remove(next_item)
                 
             else:

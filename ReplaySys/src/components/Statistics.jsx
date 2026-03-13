@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Statistics.css'
 import { useSimulation } from '../context/SimulationContext';
+
 function ConfigBox({ label, value, onApply, disabled = false }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   
-
   useEffect(() => {
     setDraft(value);
   }, [value]);
@@ -46,6 +46,7 @@ export default function Statistics({
   avgWaitTakeoff, avgWaitHolding,
   maxDelayTakeoff, maxDelayHolding,   
   avgDelayTakeoff, avgDelayArrival,
+  totalCancellations, totalDiversions,
   maxWaitConfig, onMaxWaitConfigChange
 }) {
   const { activeSim } = useSimulation();
@@ -96,8 +97,17 @@ export default function Statistics({
             <span className="statCardSubtitle">Arrival</span>
             <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
         </div>
+        <div className="statCard">
+            <span className="statCardTitle">Total</span>
+            <span className="statCardSubtitle">Cancellations</span>
+            <span className="statCardValue">{totalCancellations ?? '—'}</span>
+        </div>
+        <div className="statCard">
+            <span className="statCardTitle">Total</span>
+            <span className="statCardSubtitle">Diversions</span>
+            <span className="statCardValue">{totalDiversions ?? '—'}</span>
+        </div>
       </div>
-      {/* Configurable Thresholds */}
       <div className="configRow">
         <ConfigBox
           label="MAX WAIT (TAKE-OFF)"
