@@ -30,19 +30,24 @@ export default function FlightQueue({ title, columns, data = [], onEmergencyTogg
                   {flight.time}
                   {/* Hover Popup for Emergency Toggle */}
                   <div className="flight-actions-popup">
-                    <p className="popup-label">{flight.callsign} Details...</p>
-                    <div className="emergency-control">
-                      <span>EMERGENCY</span>
-                      <label className="switch">
-                        <input
-    type="checkbox"
-    checked={!!flight.isEmergency}
-    disabled={isPlaying || !onEmergencyToggle}
-    onChange={() => onEmergencyToggle?.(flight.callsign, !flight.isEmergency)}
-/>
-                        <span className="slider"></span>
-                      </label>
-                    </div>
+                    <p className="popup-label">Call-sign: {flight.callsign}</p>
+                    <div><strong>Fuel:</strong> {flight.fuel ? `${Math.floor(flight.fuel / 60)} min` : '—'}</div>
+
+                    {/* Only show emergency toggle if onEmergencyToggle is provided */}
+                    {onEmergencyToggle && (
+                      <div className="emergency-control">
+                        <span>EMERGENCY</span>
+                        <label className="switch">
+                          <input
+                            type="checkbox"
+                            checked={!!flight.isEmergency}
+                            disabled={isPlaying}
+                            onChange={() => onEmergencyToggle(flight.callsign, !flight.isEmergency)}
+                          />
+                          <span className="slider"></span>
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
