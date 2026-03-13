@@ -1,7 +1,7 @@
 import React from 'react';
 import FlightQueue from "./FlightQueue.jsx";
 
-export default function TakeoffQueue({ flights = [], onEmergencyToggle }) {
+export default function TakeoffQueue({ flights = []}) {
   // Columns specific to Take-off
   const columns = ['Call-sign', 'Destination', 'Time'];
   
@@ -18,7 +18,6 @@ export default function TakeoffQueue({ flights = [], onEmergencyToggle }) {
         title="Take-off Queue" 
         columns={columns} 
         data={formattedData}
-        onEmergencyToggle={onEmergencyToggle}
       />
     </div>
   );

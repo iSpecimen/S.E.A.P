@@ -18,7 +18,7 @@ const MainPage = () => {
     console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
 
     //Reading from context
-    const { activeSim, seekToTick, commitRunwayChanges } = useSimulation();
+    const { activeSim, seekToTick, commitRunwayChanges, updatePlane, updateHPTQ } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
@@ -30,14 +30,10 @@ const MainPage = () => {
     const cancellations = activeSim?.cancellations || [];
     const statistics = activeSim?.statistics || {};
 
-    const [maxWaitConfig, setMaxWaitConfig] = useState({
-        maxWaitTakeoff: 30,
-        maxWaitHolding: 30
-    });
+    const maxWaitConfig = activeSim?.maxWaitConfig || { maxWaitTakeoff: 30, maxWaitHolding: 30 };
 
-    // BACKEND HOOK: replace body with context call e.g. updateMaxWait(newConfig)
     const handlemaxWaitConfigChange = (newConfig) => {
-    setMaxWaitConfig(newConfig);
+        updateHPTQ(newConfig);
     };
 
     // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
@@ -69,13 +65,15 @@ const MainPage = () => {
             <div className="mainBody">
                 {/*Left Side*/}
                 <div className="leftSidebar">
-                    <TakeoffQueue 
-                        flights={takeoffQueue}
-                        onEmergencyToggle={handleEmergencyToggle}
-                    />
-                    <HoldingPattern 
+                    {/* No emergency toggle for takeoff queue */}
+                    <TakeoffQueue flights={takeoffQueue} />
+
+                    {/* Emergency toggle only for holding pattern */}
+                    <HoldingPattern
                         flights={holdingPattern}
-                        onEmergencyToggle={handleEmergencyToggle}
+                        onEmergencyToggle={(callsign, isEmergency) => {
+                            updatePlane(callsign, { isEmergency });
+                        }}
                     />
                 </div>
 
@@ -145,7 +143,7 @@ const MainPage = () => {
                     </div>
                     <div className="Statistics">
                         <Statistics
-                            maxWaitConfig={maxWaitConfig} 
+                            maxWaitConfig={maxWaitConfig}
                             onMaxWaitConfigChange={handlemaxWaitConfigChange}
                             maxInTakeoff={statistics.max_tqueue_size}
                             maxInHolding={statistics.max_hqueue_size}

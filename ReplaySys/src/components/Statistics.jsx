@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Statistics.css'
-
-function ConfigBox({ label, value, onApply }) {
+import { useSimulation } from '../context/SimulationContext';
+function ConfigBox({ label, value, onApply, disabled = false }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  
 
-  // Sync draft when parent value changes after apply
   useEffect(() => {
     setDraft(value);
   }, [value]);
@@ -32,6 +32,7 @@ function ConfigBox({ label, value, onApply }) {
       )}
       <button
         className={`configBtn ${editing ? 'applyBtn' : 'editBtn'}`}
+        disabled={disabled && !editing}
         onClick={editing ? handleApply : () => { setDraft(value); setEditing(true); }}
       >
         {editing ? '✔' : '✎'}
@@ -47,6 +48,8 @@ export default function Statistics({
   avgDelayTakeoff, avgDelayArrival,
   maxWaitConfig, onMaxWaitConfigChange
 }) {
+  const { activeSim } = useSimulation();
+  const isPlaying = activeSim?.playState === "playing";
   return (
     <div className="statistics">
       <div className="statisticsHeader">
@@ -99,11 +102,13 @@ export default function Statistics({
         <ConfigBox
           label="MAX WAIT (TAKE-OFF)"
           value={maxWaitConfig.maxWaitTakeoff}
+          disabled={isPlaying}
           onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitTakeoff: val })}
         />
         <ConfigBox
           label="MAX WAIT (HOLDING)"
           value={maxWaitConfig.maxWaitHolding}
+          disabled={isPlaying}
           onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitHolding: val })}
         />
       </div>
