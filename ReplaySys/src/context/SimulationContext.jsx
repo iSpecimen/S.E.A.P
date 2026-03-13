@@ -33,6 +33,9 @@ const createSimState = (config = {}) => ({
         outboundFlow: config.outboundFlow ?? 10,
     },
 
+    maxWaitConfig: { maxWaitTakeoff: 30, maxWaitHolding: 30 },
+    committedMaxWaitConfig: { maxWaitTakeoff: 30, maxWaitHolding: 30 },
+
     // Components read these- these are the per tick fields
     runways: [],
     takeoffQueue: [],
@@ -42,6 +45,8 @@ const createSimState = (config = {}) => ({
     // Timeline
     timelineSec: 0,
     playState: "paused",
+
+    committing: false,
 
     pendingRunwayChanges: {},
     pendingPlaneChanges: {},
@@ -359,6 +364,10 @@ export function SimulationProvider({ children }) {
         console.log("Sending plane_config:", plane_config);
         console.log("Sending hptq_config:", hptq_config);
 
+        setSimulations((prev) => ({
+            ...prev,
+            [activeTabID]: {...prev[activeTabID], committing: true }
+        }))
         try {
             const { major, minor, version } = await changeSimulation({
                 major: sim.major,
@@ -378,6 +387,14 @@ export function SimulationProvider({ children }) {
 
             setSimulations((prev) => ({
                 ...prev,
+                [activeTabID]: { 
+                    ...prev[activeTabID], 
+                    committing: false,
+                    maxWaitConfig: prev[activeTabID].committedMaxWaitConfig,
+                    pendingRunwayChanges: {}, 
+                    pendingPlaneChanges: {}, 
+                    pendingHPTQChanges: {},
+                                },
                 [tabID]: {
                     ...prev[activeTabID],
                     major,
@@ -393,6 +410,11 @@ export function SimulationProvider({ children }) {
                     pendingRunwayChanges: {},
                     pendingPlaneChanges: {},
                     pendingHPTQChanges: {},
+
+                    committing: false,
+
+                    maxWaitConfig: prev[activeTabID].maxWaitConfig,
+                    committedMaxWaitConfig: prev[activeTabID].maxWaitConfig,
                 },
             }));
             setActiveTabID(tabID);
@@ -412,7 +434,7 @@ export function SimulationProvider({ children }) {
         } catch (err) {
             setSimulations((prev) => ({
                 ...prev,
-                [activeTabID]: { ...prev[activeTabID], error: err.message },
+                [activeTabID]: { ...prev[activeTabID], committing: false, error: err.message },
             }));
         }
     }, [activeTabID, simulations]);
@@ -608,6 +630,7 @@ export function SimulationProvider({ children }) {
                 updateHPTQ,
                 commitRunwayChanges,
                 setPlaybackSpeed,
+                committing: activeSim?.committing ?? false,
             }}
         >
             {children}

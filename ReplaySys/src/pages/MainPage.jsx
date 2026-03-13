@@ -18,7 +18,7 @@ const MainPage = () => {
     console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
 
     //Reading from context
-    const { activeSim, seekToTick, commitRunwayChanges, updatePlane, updateHPTQ } = useSimulation();
+    const { activeSim, seekToTick, commitRunwayChanges, updatePlane, updateHPTQ, committing } = useSimulation();
 
     // Arrivals/Departures hook 
     const [showArrDep, setShowArrDep] = useState(false);
@@ -41,6 +41,10 @@ const MainPage = () => {
         updatePlane(callsign, { isEmergency: newState });
     };
 
+    const hasPendingChanges = 
+        Object.keys(activeSim?.pendingRunwayChanges || {}).length > 0 ||
+        Object.keys(activeSim?.pendingPlaneChanges || {}).length > 0 ||
+        Object.keys(activeSim?.pendingHPTQChanges || {}).length > 0;
 
     //ERROR HANDLING
     if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
@@ -51,6 +55,14 @@ const MainPage = () => {
     console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
     return (
         <div className="mainPage">
+            {committing && (
+                <div className="commitOverlay">
+                    <div className="commitPopup">
+                        <div className="commitSpinner" />
+                        <p>Opening a new tab with your configs...</p>
+                    </div>
+                </div>
+            )}
             {/*Tab Bar - Simulation Tab Component */}
             <header className="tabBar">
                 <SimulationTab
@@ -113,10 +125,10 @@ const MainPage = () => {
                     </div>
                     {/* New commit button */}
                     {/* In MainPage.jsx, replace the bare button with: */}
-                    <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                    <div style={{ textAlign: 'center' }}>
                         <button
                             className="commitChangesBtn"
-                            disabled={activeSim?.playState === "playing"}
+                            disabled={activeSim?.playState === "playing" || !hasPendingChanges}
                             onClick={() => {
                                 console.log("BUTTON CLICKED");
                                 commitRunwayChanges();
