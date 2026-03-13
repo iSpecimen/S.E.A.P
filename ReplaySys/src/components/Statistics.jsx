@@ -46,7 +46,8 @@ export default function Statistics({
   avgWaitTakeoff, avgWaitHolding,
   maxDelayTakeoff, maxDelayHolding,   
   avgDelayTakeoff, avgDelayArrival,
-  maxWaitConfig, onMaxWaitConfigChange
+  maxWaitConfig, onMaxWaitConfigChange,
+  totalCancelled, totalDiverted
 }) {
   const { activeSim } = useSimulation();
   const isPlaying = activeSim?.playState === "playing";
@@ -87,14 +88,24 @@ export default function Statistics({
           <span className="statCardValue">{avgDelayArrival ?? '—'}</span>
         </div>
         <div className="statCard">
-            <span className="statCardTitle">Max Delay (min)</span>
-            <span className="statCardSubtitle">Take-off</span>
-            <span className="statCardValue">{maxDelayTakeoff ?? '—'}</span>
+          <span className="statCardTitle">Max Delay (min)</span>
+          <span className="statCardSubtitle">Take-off</span>
+          <span className="statCardValue">{maxDelayTakeoff ?? '—'}</span>
         </div>
         <div className="statCard">
-            <span className="statCardTitle">Max Delay (min)</span>
-            <span className="statCardSubtitle">Arrival</span>
-            <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
+          <span className="statCardTitle">Max Delay (min)</span>
+          <span className="statCardSubtitle">Arrival</span>
+          <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
+        </div>
+        <div className="statCard">
+          <span className="statCardTitle">Total</span>
+          <span className="statCardSubtitle">Cancellations</span>
+          <span className="statCardValue statCardValueCancel">{totalCancelled ?? '—'}</span>
+        </div>
+        <div className="statCard">
+          <span className="statCardTitle">Total</span>
+          <span className="statCardSubtitle">Diversions</span>
+          <span className="statCardValue statCardValueDivert">{totalDiverted ?? '—'}</span>
         </div>
       </div>
       {/* Configurable Thresholds */}

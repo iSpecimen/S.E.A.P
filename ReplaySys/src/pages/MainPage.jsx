@@ -169,6 +169,8 @@ const MainPage = () => {
                             avgDelayArrival={statistics.avg_hqueue_delay}
                             maxDelayTakeoff={statistics.max_tqueue_delay}
                             maxDelayHolding={statistics.max_hqueue_delay}
+                            totalCancelled={cancellations.totalCancelled}
+                            totalDiverted={cancellations.totalDiverted}
                         />
                     </div>
                 </section>
