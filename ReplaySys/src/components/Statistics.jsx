@@ -111,13 +111,13 @@ export default function Statistics({
       {/* Configurable Thresholds */}
       <div className="configRow">
         <ConfigBox
-          label="MAX WAIT (TAKE-OFF)"
+          label="MAX SIZE (TAKE-OFF)"
           value={maxWaitConfig.maxWaitTakeoff}
           disabled={isPlaying}
           onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitTakeoff: val })}
         />
         <ConfigBox
-          label="MAX WAIT (HOLDING)"
+          label="MAX SIZE (HOLDING)"
           value={maxWaitConfig.maxWaitHolding}
           disabled={isPlaying}
           onApply={(val) => onMaxWaitConfigChange?.({ ...maxWaitConfig, maxWaitHolding: val })}
