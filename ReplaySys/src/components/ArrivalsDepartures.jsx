@@ -33,7 +33,7 @@ export default function ArrivalsDepartures({ departures = [], arrivals = [] }) {
                                 <tr key={flight.id}>
                                     <td>{flight.callsign}</td>
                                     <td>{flight.destination}</td>
-                                    <td>{flight.scheduled_time}</td>
+                                    <td>{flight.time}</td>
                                 </tr>
                             ))}
                         </tbody>

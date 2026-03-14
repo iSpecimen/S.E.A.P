@@ -54,6 +54,13 @@ const MainPage = () => {
 
     console.log("playState:", activeSim?.playState);
     console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
+
+    function formatSecondsToTime(totalSeconds) {
+    if (totalSeconds == null) return "--:--";
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
     return (
         <div className="mainPage">
             {committing && (
@@ -190,7 +197,7 @@ const MainPage = () => {
                                     id: i,
                                     callsign: p.callsign,
                                     destination: p.destination,
-                                    time: p.time,
+                                    time: formatSecondsToTime(p._scheduled_time),
                                 }))}
                             arrivals={runways
                                 .map((rw) => rw.plane)
@@ -199,7 +206,7 @@ const MainPage = () => {
                                     id: i,
                                     callsign: p.callsign,
                                     origin: p.origin,
-                                    time: p.time,
+                                    time: formatSecondsToTime(p._scheduled_time),
                                 }))}
                         />
                     </div>

@@ -628,6 +628,7 @@ export function SimulationProvider({ children }) {
                 updateHPTQ,
                 commitRunwayChanges,
                 setPlaybackSpeed,
+                formatSecondsToTime,
                 committing: activeSim?.committing ?? false,
             }}
         >
