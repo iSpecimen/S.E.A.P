@@ -21,7 +21,7 @@
   --st-transition:     180ms ease;
 }
 
-/* ── Wrapper ── */
+/* Wrapper */
 .SimTabWrapper {
   display: flex;
   flex-direction: column;
@@ -34,7 +34,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
 }
 
-/* ═══ Tab Bar ═══ */
+/* Tab Bar */
 .SimTabBar {
   display: flex;
   align-items: stretch;
@@ -65,7 +65,7 @@
 
 }
 
-/* ── Individual tab ── */
+/* Individual tab */
 .SimTab {
   display: inline-flex;
   align-items: center;
@@ -97,7 +97,7 @@
   box-shadow: inset 0 2px 0 var(--st-mixed);
 }
 
-/* Config copy — italic label + amber accent */
+/* Config copy: italic label + amber accent */
 .SimTabConfig .SimTabLabel {
   font-style: italic;
 }
@@ -106,7 +106,7 @@
   box-shadow: inset 0 2px 0 var(--st-takeoff);
 }
 
-/* ── Status dot ── */
+/* Status dot */
 .SimTabDot {
   width: 7px;
   height: 7px;
@@ -130,14 +130,14 @@
   50%      { opacity: .45; }
 }
 
-/* ── Tab label ── */
+/* Tab label */
 .SimTabLabel {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 160px;
 }
 
-/* ── Close button ── */
+/* Close button */
 .SimTabClose {
   display: inline-flex;
   align-items: center;
@@ -166,7 +166,7 @@
   color: #fff;
 }
 
-/* ═══ Action buttons ═══ */
+/* Action buttons */
 .SimTabActions {
   display: flex;
   align-items: center;
@@ -195,7 +195,7 @@
     border-color var(--st-transition);
 }
 
-/* Copy Config — amber */
+/* Copy Config: amber */
 .SimTabButtonCopy {
   border-color: var(--st-takeoff);
   color: var(--st-takeoff);
@@ -206,7 +206,7 @@
   border-color: #fcd34d;
 }
 
-/* + New Simulation — violet */
+/* + New Simulation: violet */
 .SimTabButtonNew {
   border-color: var(--st-mixed);
   color: var(--st-mixed);

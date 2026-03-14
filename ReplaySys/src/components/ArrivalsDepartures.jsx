@@ -1,15 +1,25 @@
 import "./ArrivalsDepartures.css";
 
-// departures: [{ id: 1, callsign: "MX123", destination: "LONDON", time: "12:45" }]
-// arrivals:   [{ id: 1, callsign: "CS261", origin: "LISBON", time: "06:50" }]
+/**
+ * ArrivalsDepartures : Sliding sidebar panel showing planes currently
+ * on runways, split into Departures (origin = SEAP) and Arrivals.
+ * 
+ * Props:
+ *   departures: [{ id, callsign, destination, time }]
+ *   arrivals:   [{ id, callsign, origin, time }]
+ * 
+ * Data source: Mapped from activeSim.runways in MainPage.jsx.
+ * Each entry represents a plane currently occupying a runway,
+ * not the full queue. Times are formatted from _scheduled_time
+ * via formatTime() before being passed in.
+ */
 export default function ArrivalsDepartures({ departures = [], arrivals = [] }) {
     return (
         <div className="arrDep">
-            {/* Departures */}
+            {/* Departures table: planes on runways heading outbound */}
             <div className="arrDepSection">
                 <div className="arrDepHeader">
                     <h2 className="arrDepTitle">Departures</h2>
-
                 </div>
                 <div className="arrDepTableWrapper">
                     <table className="arrDepTable">
@@ -28,7 +38,6 @@ export default function ArrivalsDepartures({ departures = [], arrivals = [] }) {
                                     </td>
                                 </tr>
                             )}
-                            {/**Flight ID gives react a stable identifier for simulation updates */}
                             {departures.map((flight) => (
                                 <tr key={flight.id}>
                                     <td>{flight.callsign}</td>
@@ -37,17 +46,15 @@ export default function ArrivalsDepartures({ departures = [], arrivals = [] }) {
                                 </tr>
                             ))}
                         </tbody>
-
                     </table>
-                </div >
-            </div >
+                </div>
+            </div>
 
-            {/* Arrivals */}
+            {/* Arrivals table: planes on runways heading inbound */}
             <div className="arrDepSection">
                 <div className="arrDepHeader">
                     <h2 className="arrDepTitle">Arrivals</h2>
                 </div>
-
                 <div className="arrDepTableWrapper">
                     <table className="arrDepTable">
                         <thead>
@@ -76,9 +83,6 @@ export default function ArrivalsDepartures({ departures = [], arrivals = [] }) {
                     </table>
                 </div>
             </div>
-
-
-        </div >
-
+        </div>
     );
 }

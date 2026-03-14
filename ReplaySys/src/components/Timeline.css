@@ -12,7 +12,7 @@
 }
 
 .timelineController.disabled {
-  pointer-events: none; /* When it's disabled- ignore all clicks*/
+  pointer-events: none; /* When it's disabled, ignore all clicks*/
   opacity: 0.5;
 }
 
@@ -67,10 +67,10 @@
 
 
 .timelineSlider {
-  display: block;        /* ← add this */
-  position: absolute;    /* ← change from relative to absolute */
-  top: 0;                /* ← add this */
-  left: 0;              /* ← add this */
+  display: block;       
+  position: absolute;    
+  top: 0;                
+  left: 0;              
   z-index: 10;
   height: 8px;
   width: 100%;
