@@ -24,7 +24,7 @@ import { startSimulation, changeSimulation, fetchFullState, fetchStatistics } fr
  *   touches. This prevents the timeline from overwriting user edits. On commit,
  *   only the diffs are sent to the backend, and a new simulation opens in a fresh tab.
  *
- * Provider value exposes:
+ * Provider function exposes (can be used in other components):
  *   State:  simulations, activeTabID, activeSim, labelMap, committing
  *   Actions: createSimulation, duplicateSimulation, switchTab, removeSimulation,
  *            requestNewSimulation, togglePlayPause, seekToTick, updateRunway,
@@ -77,7 +77,7 @@ const createSimState = (config = {}) => ({
     timelineSec: 0,
     playState: "paused",
 
-    // Pending user edits — stored separately so seekToTick can't overwrite them
+    // Pending user edits: stored separately so seekToTick can't overwrite them
     pendingRunwayChanges: {},
     pendingPlaneChanges: {},
     pendingHPTQChanges: {},
@@ -127,9 +127,9 @@ function formatSecondsToTime(totalSeconds) {
 }
 
 /**
- * mapPlane – Maps a single plane dictionary from the backend Logger
- * into component-friendly props. Renames underscore-prefixed private
- * fields (e.g. _fuel_seconds → fuel) and formats scheduled time.
+ * mapPlane:  Maps a single plane dictionary from the backend Logger
+ * into component-friendly props. Renames private
+ * fields (e.g. _fuel_seconds to fuel) and formats scheduled time.
  */
 function mapPlane(plane) {
     return {
@@ -148,8 +148,7 @@ function mapPlane(plane) {
 }
 
 /**
- * SimulationProvider – Wrapper component that holds all simulation data
- * and exposes it via React Context.
+ * SimulationProvider: Holds all the simulation data and exposes it via React context
  *
  * 'simulations' is a dictionary where each key is a tab ID and each
  * value is that tab's full sim state. 'activeTabID' tracks which tab
@@ -168,7 +167,7 @@ export function SimulationProvider({ children }) {
     const simCounterRef = useRef(0);
     const [labelMap, setLabelMap] = useState({});
 
-    // ─── CREATE SIMULATION ───────────────────────────────────────────
+    // CREATE SIMULATION 
     // Called by StartPage when "Start Simulation" is clicked.
     // POSTs config to backend, fetches full stateLog + stats, opens new tab.
     const createSimulation = useCallback(async (config) => {
@@ -226,7 +225,7 @@ export function SimulationProvider({ children }) {
         }
     }, []);
 
-    // ─── DUPLICATE SIMULATION ────────────────────────────────────────
+    // DUPLICATE SIMULATION 
     // Deep-copies a simulation's entire state via JSON.parse(JSON.stringify(...)).
     // Copy starts identical to the original — changes only affect the copy.
     const duplicateSimulation = useCallback((sourceTabID, newTabID) => {
@@ -251,7 +250,7 @@ export function SimulationProvider({ children }) {
         });
     }, []);
 
-    // ─── TAB MANAGEMENT ──────────────────────────────────────────────
+    // TAB MANAGEMENT 
 
     const switchTab = useCallback((tabID) => {
         setActiveTabID(tabID);
@@ -275,12 +274,12 @@ export function SimulationProvider({ children }) {
         });
     }, [simulations]);
 
-    // Clears activeTabID → App.jsx renders StartPage for new config input
+    // Clears activeTabID, then App.jsx renders StartPage for new config input
     const requestNewSimulation = useCallback(() => {
         setActiveTabID(null);
     }, []);
 
-    // ─── TIMELINE CONTROLS ───────────────────────────────────────────
+    // TIMELINE CONTROLS
 
     // seekToTick: O(1) array lookup into stateLog for instant scrubbing.
     // Overwrites per-tick component state but never touches pending*Changes.
@@ -312,7 +311,7 @@ export function SimulationProvider({ children }) {
         }));
     }, [activeTabID]);
 
-    // ─── COMMIT CHANGES ─────────────────────────────────────────────
+    // COMMIT CHANGES 
     // Collects all pending edits (runways, emergencies, queue thresholds),
     // sends only the diffs to the backend, and opens the new simulation
     // in a fresh tab — preserving the original for comparison.
@@ -366,7 +365,7 @@ export function SimulationProvider({ children }) {
             ]);
         });
 
-        // Set committing flag for UI feedback (e.g. loading spinner on button)
+        // Set committing flag
         setSimulations((prev) => ({
             ...prev,
             [activeTabID]: { ...prev[activeTabID], committing: true },
@@ -439,7 +438,7 @@ export function SimulationProvider({ children }) {
         }
     }, [activeTabID, simulations]);
 
-    // ─── PLAYBACK LOOP ──────────────────────────────────────────────
+    // PLAYBACK LOOP 
     // Fires whenever playState or stateLog changes. When playing, a
     // setInterval advances timelineSec by 1 each interval tick.
     // Interval duration = 1000ms / playbackSpeed for variable speed.
@@ -475,11 +474,11 @@ export function SimulationProvider({ children }) {
         };
     }, [activeTabID, activeSim?.playState, activeSim?.stateLog]);
 
-    // ─── USER EDIT HANDLERS ─────────────────────────────────────────
+    //  USER EDIT HANDLERS
     // All three follow the same pattern:
     //   1. Update component state immediately for visual feedback
     //   2. Store the edit in a pending*Changes object that survives seekToTick
-    //   3. On commit, pending changes are diffed and sent to the backend
+    //   3. On commit, pending changes are sent to the backend
 
     // updateRunway: Called by RunwayCard dropdowns (mode/status changes)
     const updateRunway = useCallback((runwayID, changes) => {
@@ -559,8 +558,7 @@ export function SimulationProvider({ children }) {
         });
     }, [activeTabID]);
 
-    // ─── PLAYBACK SPEED ─────────────────────────────────────────────
-    // Updates the ref (read by setInterval without re-mounting).
+    // PLAYBACK SPEED 
     // If already playing, briefly pauses and resumes to restart the
     // interval with the new speed.
     const setPlaybackSpeed = useCallback((speed) => {
@@ -579,7 +577,7 @@ export function SimulationProvider({ children }) {
         }
     }, [activeTabID, activeSim?.playState]);
 
-    // ─── PROVIDER ───────────────────────────────────────────────────
+    //  PROVIDER 
     return (
         <SimulationContext.Provider
             value={{

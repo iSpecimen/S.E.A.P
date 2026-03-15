@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./MainPage.css";
 import Timeline from "../components/Timeline";
-
 import Cancellations from "../components/Cancellations";
 import ArrivalsDepartures from "../components/ArrivalsDepartures";
 import RunwayCard from "../components/RunwayCard";
@@ -11,58 +10,67 @@ import Statistics from "../components/Statistics";
 import SimulationTab from "../components/SimulationTab";
 import { useSimulation } from "../context/SimulationContext";
 
-// Declaring functional component const
+/**
+ * MainPage: Composes all major UI components into a three-column layout:
+ *
+ *   Left sidebar:TakeoffQueue + HoldingPattern (with emergency toggle)
+ *   Centre: Runway legend, RunwayCard grid, Commit button, Timeline
+ *   Right sidebar: Cancellations feed + Statistics panel
+ *   Sliding panel: ArrivalsDepartures (toggled via ◀/▶ button)
+ *
+ * Data flow:
+ *   All data comes from SimulationContext via the activeSim object.
+ *   MainPage acts as the wiring layer that connects context state to components.
+ *
+ * User interactions handled here:
+ *   - Commit Changes button: sends pending runway/plane/wait time edits to backend
+ *   - Emergency toggle: passed to HoldingPattern
+ *   - Max wait config: passed to Statistics
+ *   - Arrivals/Departures: derived from planes currently on runways
+ *
+ */
 const MainPage = () => {
-    const ctx = useSimulation();
-    console.log("ALL CONTEXT KEYS:", Object.keys(ctx));
-    console.log("commitRunwayChanges is:", typeof ctx.commitRunwayChanges);
-
-    //Reading from context
+    // Pull all needed state and actions from context
     const { activeSim, seekToTick, commitRunwayChanges, updatePlane, updateHPTQ, committing } = useSimulation();
 
-    // Arrivals/Departures hook 
+    // Toggle state for the sliding arrivals/departures sidebar
     const [showArrDep, setShowArrDep] = useState(false);
 
-    // Fallbacks while no simulation is loaded
+    // GETTING STATE FROM CONTEXT
     const runways = activeSim?.runways || [];
     const takeoffQueue = activeSim?.takeoffQueue || [];
     const holdingPattern = activeSim?.holdingPattern || [];
     const cancellations = activeSim?.cancellations || { totalCancelled: 0, totalDiverted: 0, events: [] };
     const statistics = activeSim?.statistics || {};
-
-
     const maxWaitConfig = activeSim?.maxWaitConfig || { maxWaitTakeoff: 30, maxWaitHolding: 30 };
 
+    // Route threshold changes to context's updateHPTQ (stores in pendingHPTQChanges)
     const handlemaxWaitConfigChange = (newConfig) => {
         updateHPTQ(newConfig);
     };
 
-    // BACKEND HOOK: replace body with context call e.g. updateEmergency(callsign, newState)
-    const handleEmergencyToggle = (callsign, newState) => {
-        updatePlane(callsign, { isEmergency: newState });
-    };
-
+    // Check if user has any uncommitted edits (controls commit button enabled state)
     const hasPendingChanges =
         Object.keys(activeSim?.pendingRunwayChanges || {}).length > 0 ||
         Object.keys(activeSim?.pendingPlaneChanges || {}).length > 0 ||
         Object.keys(activeSim?.pendingHPTQChanges || {}).length > 0;
 
-    //ERROR HANDLING
+    // LOADING / ERROR STATES
     if (activeSim?.loading) return <div className="loading">Running simulation...</div>;
     if (activeSim?.error) return <div className="error">{activeSim.error}</div>;
     if (!activeSim?.stateLog) return <div>Create a simulation to begin.</div>;
 
-    console.log("playState:", activeSim?.playState);
-    console.log("major:", activeSim?.major, "minor:", activeSim?.minor);
-
+    /** Format seconds since midnight as HH:MM for arrivals/departures table */
     function formatSecondsToTime(totalSeconds) {
-    if (totalSeconds == null) return "--:--";
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
+        if (totalSeconds == null) return "--:--";
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+
     return (
         <div className="mainPage">
+            {/* Commit overlay: shown while backend processes config changes */}
             {committing && (
                 <div className="commitOverlay">
                     <div className="commitPopup">
@@ -71,24 +79,18 @@ const MainPage = () => {
                     </div>
                 </div>
             )}
-            {/*Tab Bar - Simulation Tab Component */}
-            <header className="tabBar">
-                <SimulationTab
-                    onTabChange={(id) => console.log("Switched to tab:", id)}
-                    onNewSimulation={() => console.log("New simulation requested")}
-                    onCloseTab={(id) => console.log("Closed tab:", id)}
-                />
 
+            {/* TAB BAR */}
+            <header className="tabBar">
+                <SimulationTab />
             </header>
 
-            {/*Main Content*/}
+            {/* MAIN CONTENT (three-column layout) */}
             <div className="mainBody">
-                {/*Left Side*/}
-                <div className="leftSidebar">
-                    {/* No emergency toggle for takeoff queue */}
-                    <TakeoffQueue flights={takeoffQueue} />
 
-                    {/* Emergency toggle only for holding pattern */}
+                {/* LEFT SIDEBAR: Flight queues*/}
+                <div className="leftSidebar">
+                    <TakeoffQueue flights={takeoffQueue} />
                     <HoldingPattern
                         flights={holdingPattern}
                         onEmergencyToggle={(callsign, isEmergency) => {
@@ -97,10 +99,9 @@ const MainPage = () => {
                     />
                 </div>
 
-
-                {/*Centre Card*/}
+                {/* CENTRE: Runways + Controls + Timeline */}
                 <main className="centre">
-                    {/* Runway Mode Legend */}
+                    {/* Colour legend mapping runway modes to their border colours */}
                     <div className="runwayLegend">
                         <span className="legendItem">
                             <span className="legendDot" style={{ backgroundColor: '#96711E' }} />
@@ -119,8 +120,9 @@ const MainPage = () => {
                             Unavailable
                         </span>
                     </div>
+
+                    {/* Runway cards: rendered dynamically so each tab has its own config */}
                     <div className="runwayGrid">
-                        {/*Runways render dynamically with .map(), so each tab has its own runway config*/}
                         {runways.map((rw) => (
                             <RunwayCard
                                 key={rw.id}
@@ -129,33 +131,28 @@ const MainPage = () => {
                                 callSign={rw.callsign || "N/A"}
                                 initialMode={rw.mode}
                                 initialStatus={rw.status}
-                            />))}
+                            />
+                        ))}
                     </div>
-                    {/* New commit button */}
-                    {/* In MainPage.jsx, replace the bare button with: */}
+
+                    {/* Commit button: disabled during playback or when no edits pending */}
                     <div style={{ textAlign: 'center' }}>
                         <button
                             className="commitChangesBtn"
                             disabled={activeSim?.playState === "playing" || !hasPendingChanges}
-                            onClick={() => {
-                                console.log("BUTTON CLICKED");
-                                commitRunwayChanges();
-                            }}
+                            onClick={() => commitRunwayChanges()}
                         >
                             Commit Changes
                         </button>
                     </div>
-                    {/*Every time it ticks (or the user drags the slider), it calls onTimeChange(newSecond).
-                    We pass seekToTick as that callback.
-                    seekToTick indexes into stateLog[newSecond] and
-                    updates runways/takeoffQueue/holdingPattern,
-                    which causes all the components above to re-render with the correct data for that second. */}
+
+                    {/* Timeline controller — seekToTick provides O(1) scrubbing */}
                     <div className="timeline">
                         <Timeline />
                     </div>
                 </main>
 
-                {/*Right Side*/}
+                {/* ─── RIGHT SIDEBAR: Cancellations + Statistics ────── */}
                 <section className="rightSidebar">
                     <div className="Cancellations">
                         <Cancellations
@@ -182,13 +179,14 @@ const MainPage = () => {
                     </div>
                 </section>
 
+                {/* ─── ARRIVALS/DEPARTURES SLIDING PANEL ────────────── */}
                 <button className="arrDepToggle" onClick={() => setShowArrDep(!showArrDep)}>
                     {showArrDep ? "▶" : "◀"}
-
                 </button>
                 <aside className={`arrDepSidebar ${showArrDep ? "open" : ""}`}>
                     <div className="arrivalsDepartures">
-
+                        {/* Derived from planes currently occupying runways,
+                            split by origin: SEAP = departure, other = arrival */}
                         <ArrivalsDepartures
                             departures={runways
                                 .map((rw) => rw.plane)
@@ -212,10 +210,8 @@ const MainPage = () => {
                     </div>
                 </aside>
             </div>
-
-
         </div>
     );
-
 };
+
 export default MainPage;
