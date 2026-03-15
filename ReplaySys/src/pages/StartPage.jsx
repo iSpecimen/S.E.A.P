@@ -100,7 +100,7 @@ export default function StartPage() {
                 setInboundFlow(String(val));
               }}
             />
-            <label>Inbound Flow (/hr) — max {40 * runwayCount}</label>
+            <label>/hr - Inbound Flow (max {40 * runwayCount})</label>
           </div>
           <div className="field">
             <input
@@ -112,7 +112,7 @@ export default function StartPage() {
                 setOutboundFlow(String(val));
               }}
             />
-            <label>Outbound Flow (/hr) — max {40 * runwayCount}</label>
+            <label>/hr - Outbound Flow (max {40 * runwayCount})</label>
           </div>
         </div>
 
