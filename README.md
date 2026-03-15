@@ -36,7 +36,7 @@ Open two different terminals, one to run the backend and one to run the frontend
 For the backend, stay in the outermost directory (i.e. S.E.A.P)- you don't need to cd into any other one.
 ```bash
 pip install -r requirements.txt
-uvicorn api.app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn SEAP:app --reload --port 8000
 ```
 
 ### Frontend
