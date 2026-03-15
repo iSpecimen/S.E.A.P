@@ -56,10 +56,30 @@ uvicorn SEAP:app --reload --port 8000
 
 In ReplaySys (the frontend), run: 
 ```bash
-"npm run dev"
+npm run dev
 ```
 
 Then simply open a browser tab to http://localhost:5173/ or whichever URL is shown in vite (The terminal tab with npm)
+
+## Combined  concise setup + running instructions
+1. Open two terminals
+
+2. Backend terminal (S.E.A.P directory)
+Run each line in the terminal individually.
+```bash
+pip install -r requirements.txt
+uvicorn SEAP:app --reload --port 8000
+```
+
+3. Frontend terminal(S.E.A.P/ReplaySys directory)
+Run each line in the terminal individually.
+```bash
+cd ReplaySys
+npm install
+npm run dev
+```
+
+Open browser tab to http://localhost:5173/ or whichever URL is shown in vite (The terminal tab with npm)
 
 
 
