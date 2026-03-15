@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo');
 
-/* ---- Outer wrapper — fills the sidebar ---- */
+/* ---- Outer wrapper: fills the sidebar ---- */
 
 .arrDep {
   display: flex;
@@ -24,7 +24,7 @@
   border: 2px solid #d4a017;
 }
 
-/* ---- Section header (the amber bar) ---- */
+/* Section header (the amber bar)  */
 
 .arrDepHeader {
   display: flex;
@@ -43,7 +43,7 @@
   margin: 0;
 }
 
-/* ---- Scrollable table wrapper ---- */
+/*  Scrollable table wrapper */
 
 .arrDepTableWrapper {
   flex: 1 1 auto;
@@ -63,7 +63,7 @@
   border-radius: 10px;
 }
 
-/* ---- Table ---- */
+/* Table */
 
 .arrDepTable {
   width: 100%;
@@ -98,7 +98,7 @@
   background-color: #fef3cd;
 }
 
-/* ---- Empty state ---- */
+/* Empty state */
 
 .arrDepEmpty {
   text-align: center;

@@ -4,7 +4,7 @@
 //
 // Entry point for the application: it's the start screen the user sees.
 //
-// Navigation flow (without a router):
+// Navigation flow:
 //   1. User fills in parameters and clicks "Start Simulation"
 //   2. createSimulation() is called, and then React context creates a tab with loading set to true
 //   3. Because activeSim now exists, App.jsx switches to MainPage
@@ -30,7 +30,7 @@ import './StartPage.css';
  * the automatic page switch via App.jsx.
  *
  * State is stored as strings to allow free typing (select-all, delete, retype).
- * Values are clamped to valid ranges and converted to numbers on submit.
+ * Values are restricted to valid ranges and converted to numbers on submit.
  * The submit button is disabled after clicking to prevent duplicate submissions.
  */
 export default function StartPage() {
@@ -73,7 +73,7 @@ export default function StartPage() {
           <span className="logo-sub">Airport Simulation</span>
         </div>
 
-        {/* Parameter inputs — three numeric fields for simulation config */}
+        {/* Parameter inputs: three numeric fields for simulation config */}
         <div className="inputs">
           <div className="field">
             <input
@@ -116,7 +116,7 @@ export default function StartPage() {
           </div>
         </div>
 
-        {/* Submit — disabled after click to prevent duplicate submissions */}
+        {/* Submit: disabled after click to prevent duplicate submissions */}
         <button
           className="start-btn"
           onClick={handleStart}

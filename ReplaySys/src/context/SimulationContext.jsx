@@ -20,7 +20,7 @@ import { startSimulation, changeSimulation, fetchFullState, fetchStatistics } fr
  *
  * Pending changes pattern:
  *   When the user pauses and edits runway config / emergency flags / queue thresholds,
- *   changes are stored in separate `pending*Changes` objects that seekToTick() never
+ *   changes are stored in separate `pendingChanges` objects that seekToTick() never
  *   touches. This prevents the timeline from overwriting user edits. On commit,
  *   only the diffs are sent to the backend, and a new simulation opens in a fresh tab.
  *
@@ -35,7 +35,7 @@ const SimulationContext = createContext();
 export const useSimulation = () => useContext(SimulationContext);
 
 /**
- * createSimState – Factory function that stamps out the initial state
+ * createSimState – Function that generates the initial state
  * for a new simulation tab. Every field a component might read is
  * initialised here so there are no undefined access errors on first render.
  */
@@ -86,7 +86,7 @@ const createSimState = (config = {}) => ({
 /**
  * frameToComponentState – Maps one tick's raw Logger JSON output into
  * component-friendly props. Called every time the timeline advances or
- * the user scrubs to a new position.
+ * the user moves timeline to a new position.
  *
  * Input: A single frame from stateLog[tick]
  * Output: { runways, takeoffQueue, holdingPattern, cancellations }
@@ -128,7 +128,7 @@ function formatSecondsToTime(totalSeconds) {
 
 /**
  * mapPlane:  Maps a single plane dictionary from the backend Logger
- * into component-friendly props. Renames private
+ * into component-usable props. Renames private
  * fields (e.g. _fuel_seconds to fuel) and formats scheduled time.
  */
 function mapPlane(plane) {
@@ -162,7 +162,7 @@ export function SimulationProvider({ children }) {
     const playbackSpeedRef = useRef(1);
     const activeSim = activeTabID ? simulations[activeTabID] : null;
 
-    // Frontend tab labelling — mapped here (not in SimulationTab) so labels
+    // Frontend tab labelling:  mapped here (not in SimulationTab) so labels
     // survive page switches. simCounter increments for each new root simulation.
     const simCounterRef = useRef(0);
     const [labelMap, setLabelMap] = useState({});
@@ -227,7 +227,7 @@ export function SimulationProvider({ children }) {
 
     // DUPLICATE SIMULATION 
     // Deep-copies a simulation's entire state via JSON.parse(JSON.stringify(...)).
-    // Copy starts identical to the original — changes only affect the copy.
+    // Copy starts identical to the original, so changes only affect the copy.
     const duplicateSimulation = useCallback((sourceTabID, newTabID) => {
         setSimulations((prev) => {
             const source = prev[sourceTabID];
@@ -281,8 +281,8 @@ export function SimulationProvider({ children }) {
 
     // TIMELINE CONTROLS
 
-    // seekToTick: O(1) array lookup into stateLog for instant scrubbing.
-    // Overwrites per-tick component state but never touches pending*Changes.
+    // seekToTick: O(1) array lookup into stateLog
+    // Overwrites per-tick component state but never touches pendingChanges.
     const seekToTick = useCallback((tick) => {
         if (!activeTabID) return;
         setSimulations((prev) => {
@@ -313,7 +313,7 @@ export function SimulationProvider({ children }) {
 
     // COMMIT CHANGES 
     // Collects all pending edits (runways, emergencies, queue thresholds),
-    // sends only the diffs to the backend, and opens the new simulation
+    // sends only the changes to the backend, and opens the new simulation
     // in a fresh tab — preserving the original for comparison.
     const commitRunwayChanges = useCallback(async () => {
         if (!activeTabID) return;
@@ -477,7 +477,7 @@ export function SimulationProvider({ children }) {
     //  USER EDIT HANDLERS
     // All three follow the same pattern:
     //   1. Update component state immediately for visual feedback
-    //   2. Store the edit in a pending*Changes object that survives seekToTick
+    //   2. Store the edit in a pendingChanges object that survives seekToTick
     //   3. On commit, pending changes are sent to the backend
 
     // updateRunway: Called by RunwayCard dropdowns (mode/status changes)

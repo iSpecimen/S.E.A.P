@@ -133,7 +133,7 @@ export default function RunwayCard({
           </div>
         </div>
 
-        {/* Mode and Status dropdowns — locked during playback or when runway is occupied */}
+        {/* Mode and Status dropdowns: locked during playback or when runway is occupied */}
         <div className="runway-controls">
           <div className="control-group">
             <label>MODE</label>
@@ -156,7 +156,7 @@ export default function RunwayCard({
         </div>
       </div>
 
-      {/* Hover popup — full flight details shown when mouse hovers over card */}
+      {/* Hover popup: full flight details shown when mouse hovers over card */}
       <div className="hover-info-box">
         <div className="hover-content">
           <strong>Flight Details:</strong>
@@ -168,7 +168,7 @@ export default function RunwayCard({
               <div><strong>Altitude:</strong> {Math.round(plane._altitude)} ft</div>
               <div><strong>Speed:</strong> {Math.round(plane._ground_speed)} kts</div>
               <div><strong>Fuel:</strong> {Math.floor(plane._fuel_seconds / 60)} min</div>
-              <div><strong>Emergency:</strong> {plane._emergency ? "YES 🚨" : "No"}</div>
+              <div><strong>Emergency:</strong> {plane._emergency ? "YES" : "No"}</div>
             </>
           ) : (
             <p>No aircraft on runway</p>

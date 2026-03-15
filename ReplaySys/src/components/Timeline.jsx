@@ -73,7 +73,7 @@ const Timeline = ({ disabled = false }) => {
                 <span className="timelineEndTime">{formatTime(86399)}</span>
             </div>
 
-            {/* Slider — custom track fill overlaid on a native range input */}
+            {/* Slider */}
             <div className="timelineSliderWrapper">
                 <div className="timelineTrack">
                     <div

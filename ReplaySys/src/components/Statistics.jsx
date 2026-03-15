@@ -74,7 +74,7 @@ function ConfigBox({ label, value, onApply, disabled = false }) {
  *   totalDiverted:   Cumulative diversions at current tick
  *
  * Props (configurable thresholds):
- *   maxWaitConfig:          { maxWaitTakeoff, maxWaitHolding } — current values
+ *   maxWaitConfig:          { maxWaitTakeoff, maxWaitHolding } 
  *   onMaxWaitConfigChange:  Callback to update thresholds via updateHPTQ in context.
  *                           Changes are stored in pendingHPTQChanges and sent to
  *                           the backend on commit.
@@ -100,7 +100,7 @@ export default function Statistics({
         <h2 className="statisticsTitle">Statistics</h2>
       </div>
 
-      {/* 2-column grid of stat cards — values from backend statistics endpoint */}
+      {/* 2-column grid of stat cards: values from backend statistics endpoint */}
       <div className="statisticsGrid">
         <div className="statCard">
           <span className="statCardTitle">Max No. In</span>
@@ -143,7 +143,7 @@ export default function Statistics({
           <span className="statCardValue">{maxDelayHolding ?? '—'}</span>
         </div>
 
-        {/* Per-tick totals from stateLog — colour-coded for quick scanning */}
+        {/* Per-tick totals from stateLog: colour-coded for quick scanning */}
         <div className="statCard">
           <span className="statCardTitle">Total</span>
           <span className="statCardSubtitle">Cancellations</span>
@@ -156,7 +156,7 @@ export default function Statistics({
         </div>
       </div>
 
-      {/* Editable thresholds — changes stored in pendingHPTQChanges until committed */}
+      {/* Editable thresholds: changes stored in pendingHPTQChanges until committed */}
       <div className="configRow">
         <ConfigBox
           label="MAX WAIT TIME (TAKE-OFF)"
