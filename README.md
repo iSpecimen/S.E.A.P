@@ -1,5 +1,5 @@
 # S.E.A.P
-CS261 Software Engineering Project
+CS261 Software Engineering Project.
 This is the Developer guide; for the User Guide which walks you through the application, see "SEAP User Guide".
 
 ## Running Backend Tests
