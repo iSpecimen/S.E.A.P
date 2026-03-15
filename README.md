@@ -33,25 +33,23 @@ pip --version
 Open two different terminals, one to run the backend and one to run the frontend.
 
 ### Backend
-For the backend, stay in the outermost directory (i.e. S.E.A.P)- you don't need to cd into any other one.
+For the backend, stay in the outermost directory (i.e. S.E.A.P)- you don't need to cd into any other one. Run these commands individually in your terminal.
 ```bash
 pip install -r requirements.txt
-uvicorn SEAP:app --reload --port 8000
 ```
 
 ### Frontend
-For the frontend, you need to be in the "ReplaySys" directory: this is where all the frontend code is.
+For the frontend, you need to be in the "ReplaySys" directory: this is where all the frontend code is.Run these commands individually in your terminal.
 ```bash
 cd ReplaySys
 npm install
-npm run dev
 ```
 
 ## Now running it:
 
-You need 2 terminals. One in the S.E.A.P directory, and one in S.E.A.P/ReplaySys 
+You should have two terminals open: one in the S.E.A.P directory (the backend), and one in S.E.A.P/ReplaySys (the frontend).
 
-In the backend one (S.E.A.P directory), you just need to run:
+In the backend one (S.E.A.P directory), run:
 "uvicorn SEAP:app --reload --port 8000"
 
 In ReplaySys (the frontend), run: 
