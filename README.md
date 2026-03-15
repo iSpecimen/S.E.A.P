@@ -50,12 +50,17 @@ npm install
 You should have two terminals open: one in the S.E.A.P directory (the backend), and one in S.E.A.P/ReplaySys (the frontend).
 
 In the backend one (S.E.A.P directory), run:
-"uvicorn SEAP:app --reload --port 8000"
+```bash
+uvicorn SEAP:app --reload --port 8000
+```
 
 In ReplaySys (the frontend), run: 
-"npm run dev" 
+```bash
+"npm run dev"
+```
 
 Then simply open a browser tab to http://localhost:5173/ or whichever URL is shown in vite (The terminal tab with npm)
+
 
 
 ## Project Structure
