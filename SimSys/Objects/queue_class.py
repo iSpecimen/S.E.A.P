@@ -1,27 +1,33 @@
+"""
+Doubly-linked list implementation for airport queues, serving as the base 
+class for holding patterns and takeoff queues.
+"""
+
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .plane import Plane # type: ignore[attr-defined]
+    from .Plane import Plane 
 
 class QueueNode:
+    """Represents a single node in the doubly-linked Queue list."""
     def __init__(self, val: Plane, next: QueueNode | None = None, prev: QueueNode | None = None) -> None:
         self.val: Plane = val
         self.next: QueueNode | None = next
         self.prev: QueueNode | None = prev
-        self.emergency_handled : bool = False
-
+        self.emergency_handled: bool = False
 
 class Queue(ABC):
+    """Abstract base queue maintaining a head, tail, and size tracker."""
     def __init__(self) -> None:
         self._head: QueueNode | None = None
         self._tail: QueueNode | None = None
         self.size: int = 0
 
     def push(self, plane: Plane) -> None:
-        new_node = QueueNode(plane)
+        """Appends a Plane to the tail of the queue."""
+        new_node: QueueNode = QueueNode(plane)
 
         if self._tail is None:
             self._head = new_node
@@ -34,10 +40,11 @@ class Queue(ABC):
         self.size += 1
 
     def pop(self) -> Plane:
+        """Removes and returns the Plane from the head of the queue."""
         if self._head is None:
             raise IndexError("pop from empty queue")
 
-        return_val = self._head.val
+        return_val: Plane = self._head.val
 
         if self._head.next is None:
             self._head = None
@@ -49,10 +56,10 @@ class Queue(ABC):
         self.size -= 1
         return return_val
     
-    #only pass members of the queue for now otherwise it will break things :)))
     def remove(self, to_remove: Plane | QueueNode) -> None:
+        """Removes a specific Plane or QueueNode directly from the linked list."""
         if isinstance(to_remove, QueueNode):
-            node = to_remove
+            node: QueueNode = to_remove
 
             if node.prev is None:
                 self._head = node.next
@@ -70,18 +77,20 @@ class Queue(ABC):
             self.size -= 1
             return
         
-        plane = to_remove
-        curr = self._head
+        plane: Plane = to_remove
+        curr: QueueNode | None = self._head
         while curr is not None:
-            nxt = curr.next 
+            nxt: QueueNode | None = curr.next 
             if curr.val == plane:
                 self.remove(curr)
             curr = nxt
 
-    def getNodeAsList(self, countTarget=10) -> list[QueueNode]:
-        ls = []
-        count = 0
-        curr = self._head
+    def getNodeAsList(self, countTarget: int = 10) -> list[Plane]:
+        """Iterates from head, converting nodes to a list up to a target count."""
+        ls: list[Plane] = []
+        count: int = 0
+        curr: QueueNode | None = self._head
+        
         while curr is not None and count < countTarget:
             ls.append(curr.val)
             curr = curr.next
@@ -90,14 +99,6 @@ class Queue(ABC):
         return ls
 
     @abstractmethod
-    def tick_update(self) -> None:
+    def tick_update(self, curr_time: int, sim: Any, logger: Any) -> None:
+        """Abstract simulation tick progression implemented by subclasses."""
         ...
-
-    @abstractmethod
-    def get_json_dict(self) -> dict:
-        ...
-    
-    @abstractmethod
-    def to_string(self) -> str:
-        ...
-    

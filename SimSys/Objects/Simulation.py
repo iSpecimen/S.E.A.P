@@ -1,3 +1,8 @@
+"""
+Core simulation engine driving the tick-by-tick logic, managing aircraft schedules, 
+and tracking performance statistics.
+"""
+
 from __future__ import annotations
 import math as math
 from dataclasses import dataclass
@@ -12,31 +17,35 @@ from .Logger import Logger
 
 @dataclass
 class UserConfig:
+    """Dataclass holding runway states and wait limits for a specific tick."""
     runways: list[tuple[str, str] | None] | None = None   
     max_hqueue_wait: int | float | None = None
     max_tqueue_wait: int | float | None = None
     emergency_callsign: list[str | None] | None = None
 
 class Simulation:
-    def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15):
-        self.sim_name = sim_name
-        self.hqueue = HoldingPatternQueue(2000)
-        self.tqueue = TakeOffQueue()
+    """Main simulation controller."""
+    
+    def __init__(self, sim_name: str, user_config: dict[int, UserConfig], inbound_rate: int = 15, outbound_rate: int = 15) -> None:
+        """Initialises the simulation, queues, schedules, and performance trackers."""
+        self.sim_name: str = sim_name
+        self.hqueue: HoldingPatternQueue = HoldingPatternQueue(2000)
+        self.tqueue: TakeOffQueue = TakeOffQueue()
         
         self.user_config_schedule: dict[int, UserConfig] = user_config
-        self.inbound_flow = inbound_rate or 15
-        self.outbound_flow = outbound_rate or 15
+        self.inbound_flow: int = inbound_rate or 15
+        self.outbound_flow: int = outbound_rate or 15
         
-        initial_config = self.user_config_schedule.get(0)
+        initial_config: UserConfig | None = self.user_config_schedule.get(0)
         if initial_config and initial_config.runways is not None:
-            initial_runways = initial_config.runways
+            initial_runways: list[tuple[str, str] | None] = initial_config.runways
         else:
             initial_runways = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing", "Available"), None, None, None, None, None, None, None]
 
-        self.runways = self.generate_runway_config(initial_runways)
+        self.runways: list[TakeOffRunway | MixedRunway | LandingRunway | None] = self.generate_runway_config(initial_runways)
         
-        self.current_max_hwait = 1800
-        self.current_max_twait = 1800
+        self.current_max_hwait: int | float = 1800
+        self.current_max_twait: int | float = 1800
 
         if initial_config:
             if initial_config.max_hqueue_wait is not None:
@@ -64,29 +73,32 @@ class Simulation:
         
         self.recent_events: list[dict] = []
 
-        self._logger : Logger
-        self._allPlanes : list[Plane] = []
+        self._logger: Logger
+        self._allPlanes: list[Plane] = []
         
         self.schedule_arrivals: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         self.schedule_departures: dict[int, list[Plane]] = {i: [] for i in range(60 * 60 * 24)}
         
         self._generate_schedule(self.inbound_flow, self.outbound_flow)
 
-    def get_state_log(self): 
+    def get_state_log(self) -> tuple[str, str]: 
+        """Retrieves the file path and file name of the generated state log."""
         return self._logger.get_file_data()
     
-    def inbound_outbound(self):
+    def inbound_outbound(self) -> tuple[int, int]:
+        """Returns the inbound and outbound flow rates."""
         return self.inbound_flow, self.outbound_flow
 
     def add_cancellation_diversion_event(self, tick: int, callsign: str, event_type: str) -> None:
-        event_id = f"{tick}_{callsign}"
+        """Formats and stores an interruption event for the frontend payload."""
+        event_id: str = f"{tick}_{callsign}"
         
         if event_type == "Cancellation":
-            msg = f"FLIGHT {callsign} CANCELLED: QUEUE OR WAIT LIMIT REACHED"
-            ui_type = "cancellation"
+            msg: str = f"FLIGHT {callsign} CANCELLED: QUEUE OR WAIT LIMIT REACHED"
+            ui_type: str = "cancellation"
         else:
-            msg = f"FLIGHT {callsign} DIVERTED: LOW FUEL OR HOLD LIMIT REACHED"
-            ui_type = "diversion"
+            msg: str = f"FLIGHT {callsign} DIVERTED: LOW FUEL OR HOLD LIMIT REACHED"
+            ui_type: str = "diversion"
 
         self.recent_events.append({
             "id": event_id,
@@ -100,48 +112,52 @@ class Simulation:
             self.recent_events.pop(0)
 
     def _generate_dummy_schedule(self) -> None:
+        """Generates a hardcoded dummy schedule for testing purposes."""
         for i in range(0, 3600 * 24, 30):
-            plane = Plane(f"ARR{i}", True, i)
+            plane: Plane = Plane(f"ARR{i}", True, i)
             self.schedule_arrivals[plane.mock_values()].append(plane)
             self._allPlanes.append(plane)
+            
             plane = Plane(f"DEP{i}", False, i)
             self.schedule_departures[plane.mock_values()].append(plane)
             self._allPlanes.append(plane)
             
             if i == 1800:
-                emergency_plane = Plane(f"ARR_EMG", True, i)
+                emergency_plane: Plane = Plane(f"ARR_EMG", True, i)
                 emergency_plane._fuel_seconds = 800
                 self.schedule_departures[i].append(emergency_plane)
                 self._allPlanes.append(emergency_plane)
 
-    def _generate_schedule(self, inbound : int, outbound : int) -> None: 
+    def _generate_schedule(self, inbound: int, outbound: int) -> None: 
+        """Seeds the scheduled arrivals and departures across the 24-hour cycle."""
         if inbound > 0:
-            inboundInterval = math.floor((60.0 / inbound) * 60.0)
+            inboundInterval: int = math.floor((60.0 / inbound) * 60.0)
             for i in range(1, 3600 * 24, inboundInterval):
-                plane = Plane(f"ARR{i}", True, i)
+                plane: Plane = Plane(f"ARR{i}", True, i)
                 self.schedule_arrivals[plane.mock_values(i)].append(plane)
                 self._allPlanes.append(plane)
 
         if outbound > 0:
-            outboundInterval = math.floor((60.0 / outbound) * 60)
+            outboundInterval: int = math.floor((60.0 / outbound) * 60)
             for i in range(1, 3600 * 24, outboundInterval):
-                plane = Plane(f"DEP{i}", False, i)
+                plane: Plane = Plane(f"DEP{i}", False, i)
                 self.schedule_departures[plane.mock_values(i)].append(plane)
                 self._allPlanes.append(plane)
 
-    def generate_runway_config(self, config: list[tuple[str,str] | None] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway | None]:
+    def generate_runway_config(self, config: list[tuple[str, str] | None] | None) -> list[TakeOffRunway | MixedRunway | LandingRunway | None]:
+        """Converts string-based runway configurations into Runway objects."""
         if config is None: 
             config = [("Takeoff", "Available"), ("Mixed", "Available"), ("Landing", "Available"), None, None, None, None, None, None, None]
         
         newrunways: list[TakeOffRunway | MixedRunway | LandingRunway | None] = []
         for i in range(10):
-            if config[i] == None:
+            if config[i] is None:
                 newrunways.append(None) 
                 continue 
 
             r_mode, r_status = config[i]  
             
-            runway_number = i + 1 
+            runway_number: int = i + 1 
             
             if r_mode == "Takeoff":
                 newrunways.append(TakeOffRunway(runway_number, 90, self.tqueue, r_status))
@@ -155,12 +171,13 @@ class Simulation:
         return newrunways
     
     def run(self) -> None:
+        """Main execution loop spanning every second of the 24-hour simulation."""
         self._logger = Logger(self.sim_name)
         print("=== STARTING 24-HOUR SIMULATION (BHX) ===\n")
         
         for t in range(60 * 60 * 24):
             if t in self.user_config_schedule:
-                config = self.user_config_schedule[t]
+                config: UserConfig = self.user_config_schedule[t]
                 
                 if config.runways is not None:
                     self.runways = self.generate_runway_config(config.runways)
@@ -196,16 +213,17 @@ class Simulation:
                 if r is not None:
                     r.tick_update(t, self)
 
-            active_runways = [r for r in self.runways if r is not None]
+            active_runways: list[TakeOffRunway | MixedRunway | LandingRunway] = [r for r in self.runways if r is not None]
             self._logger.add_state_log(t, self.hqueue, self.tqueue, active_runways, self.cancelled_planes_num, self.diverted_planes_num, self.recent_events)
                 
         self.print_statistics()
 
     def print_statistics(self) -> None:
-        avg_tq_wait = (self.tqueue_wait_times_sum / self.tqueue_processed) if self.tqueue_processed else 0
-        avg_tq_del = (self.tqueue_delay_sum / self.tqueue_processed) if self.tqueue_processed else 0
-        avg_hq_wait = (self.hqueue_wait_times_sum / self.hqueue_processed) if self.hqueue_processed else 0
-        avg_hq_del = (self.hqueue_delay_sum / self.hqueue_processed) if self.hqueue_processed else 0
+        """Calculates and prints the final aggregated statistics."""
+        avg_tq_wait: float = (self.tqueue_wait_times_sum / self.tqueue_processed) if self.tqueue_processed else 0.0
+        avg_tq_del: float = (self.tqueue_delay_sum / self.tqueue_processed) if self.tqueue_processed else 0.0
+        avg_hq_wait: float = (self.hqueue_wait_times_sum / self.hqueue_processed) if self.hqueue_processed else 0.0
+        avg_hq_del: float = (self.hqueue_delay_sum / self.hqueue_processed) if self.hqueue_processed else 0.0
 
         print("\n=== SIMULATION RESULTS (Client Spec Compliance) ===")
         print("--- Departures (TakeOff Queue) ---")
@@ -233,7 +251,7 @@ class Simulation:
         self._logger.clear_log_file()
         
 if __name__ == "__main__":
-    initial_config = {
+    initial_config: dict[int, UserConfig] = {
         0: UserConfig(
             runways=[
                 ("Mixed", "Available"), 
@@ -245,11 +263,11 @@ if __name__ == "__main__":
         )
     }
     
-    sim = Simulation(
+    sim: Simulation = Simulation(
         sim_name="Stress_Test_v1", 
         user_config=initial_config, 
-        inbound_rate=150, 
-        outbound_rate=150
+        inbound_rate=40, 
+        outbound_rate=40
     )
     
     sim.run()
