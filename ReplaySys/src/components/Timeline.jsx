@@ -15,10 +15,10 @@ import { useSimulation } from "../context/SimulationContext";
  *   - 2-hour tick marks along the slider for time orientation
  *   - Play/Pause button toggling simulation playback
  *   - Jump-to-time input: accepts "HH:MM:SS", "HH:MM", or raw seconds,
- *     clamped to valid range. Press Enter or click "Go" to jump.
+ *     restricted to valid range. Press Enter or click "Go" to jump.
  *   - Speed multiplier: user types a value (1–100) and clicks "Set" to
  *     adjust playback speed. Stored in a ref (playbackSpeedRef) in context
- *     so the interval can read it without re-mounting. Current speed
+ *     so the interval can read it. Current speed
  *     displayed as a label (e.g. "8x").
  *
  * Props:
