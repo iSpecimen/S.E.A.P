@@ -1,13 +1,16 @@
+""" Simulation Controller """
+"""   
+Handler for Multi-Simulation functionality
+Contains references to each Simulation object and their respective attributes through a nested dictionary, most importantly log files.
+"""
+
 from SimSys.Objects.Simulation import Simulation, UserConfig
-from SimSys.Objects.TakeOffRunway import TakeOffRunway
-from SimSys.Objects.MixedRunway import MixedRunway
-from SimSys.Objects.LandingRunway import LandingRunway
 import copy
 
 
 class SystemController():
     def __init__(self):
-        self.sim_majors: dict[int, dict[int, Simulation]] = {} # BEWARE THAT MAJORS START INCREMENT FROM 1, MINORS START FROM 0
+        self.sim_majors: dict[int, dict[int, Simulation]] = {} 
         # Simulations will be keyed by their versions 
         # dict[major, dict[minor, Simulation]]
         # sim_majors[1][0] = sim 1.0
@@ -16,7 +19,12 @@ class SystemController():
         self.current_focus: tuple[int,int] = (1,0)
         self.default_runway_config = {0: ["Takeoff", "Mixed", "Landing", None, None, None, None, None, None, None]}
 
+    def get_current_focus(self):
+        return self.current_focus
+
     def get_sim_details(self, version: tuple[int, int]):
+        """Helper Function for retrieving Simulation Data (Used in Simulation Copying)"""
+
         maj, mir = version
         try:
             target_sim: Simulation = self.sim_majors[maj][mir]
@@ -32,19 +40,20 @@ class SystemController():
         return runway_count, inbound, outbound 
 
     def create_runway_map(self, runway_configuration: tuple[int, int, int]):
+        """Helper Function for formatting appropriate structure of a runway configuration from a tuple(takeoff, mixed, landing) structure."""
+
         tf, mx, ld = runway_configuration
         runway = (
             [("Takeoff", "Available")] * tf +
             [("Mixed", "Available")] * mx +
             [("Landing", "Available")] * ld
         )
-        runway += [None] * (10 - len(runway))
-        return runway # Big question, does there need to be None Runways? 
+        runway += [None] * (10 - len(runway)) # Maximum 10 Runways in our simulation. 
+        return runway 
     
-    def get_current_focus(self):
-        return self.current_focus
-    
-    def load_sim(self, sim_version: tuple[int, int]) -> tuple[str, str]: # Changing Tab focus to new sim. Will return file_path and file_name
+    def load_sim(self, sim_version: tuple[int, int]) -> tuple[str, str]:
+        """Retrieves JSON of timeline for a given Simulation version/number."""
+
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet.")
         
@@ -54,11 +63,12 @@ class SystemController():
         except KeyError:
             raise KeyError(f"Simulation version {major}.{minor} does not exist.")
         
-        # Return the json log file path
         return target_sim.get_state_log()
 
     def start_sim(self, runway_configuration: tuple[int, int, int] | None = None, inbound_flow: int | None = None, outbound_flow: int | None = None, max_hq: int | None = None , max_tq: int | None = None) -> str: # Creating Tabs/ Starting first sim x.0s 
-        # runway_configuration = [takeoff, mixed, landing]
+        """Main Function #1"""
+        """Takes Runway Configuration, Plane Configuration, Queue Configuration, and Inbound/Outbound Flow from API Endpoints"""
+        """Creates Simulation Objects and stores references to them through the nested dictionaries"""
 
         # Since it's a new major version make a new dict
         new_sim_minor: dict[int, Simulation] = {}
@@ -82,8 +92,14 @@ class SystemController():
         return self.load_sim(self.current_focus) 
         # Returns json file path
 
-    # Takes a simulation version, runway changes, and emergency plane changes. 
     def change_runway_config(self, version: tuple[int, int], r_changes: list[tuple[int,int,str,str]], p_changes: list[int, str], hptq_changes: list[tuple[int, int, int]]) -> str : # Creating Sim. Copies, x.1, x.2s and x.3s etc
+        """Main Function #2"""
+        """
+        Retrieves Map of changes from the front-end, in the form of a JSON array of changes ordered by tick.
+        References to a Simulation's old runway config map, to then add the provided changes.
+        Creates a 'copy' of the simulation with these new adjustments, stored as a separate simulation object though. 
+        """
+
         maj, mir = version
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
@@ -96,10 +112,10 @@ class SystemController():
         newest_minor = len(self.sim_majors[maj])
 
         adapted_schedule = target_sim.user_config_schedule
-        # print(adapted_schedule)
+
         inbound, outbound = target_sim.inbound_outbound()
-        if r_changes != None: 
-            for tick, runway_num, newmode, newstatus in r_changes:  # Added newstatus into configuration
+        if r_changes != None: # Adding all r_changes, 
+            for tick, runway_num, newmode, newstatus in r_changes:
                 # Find most recent config before this tick
                 previous_tick = max(t for t in adapted_schedule if t <= tick)
 
@@ -114,7 +130,7 @@ class SystemController():
 
                 print(f"Added Runway change at tick {tick}")
 
-        if p_changes is not None:
+        if p_changes is not None:  # Adding all p_changes 
             for tick, callsign in p_changes:
 
                 previous_tick = max(t for t in adapted_schedule if t <= tick)
@@ -134,7 +150,7 @@ class SystemController():
 
                 print(f"Emergency set for {callsign} at tick {tick}")
 
-        if hptq_changes is not None:
+        if hptq_changes is not None:  # Adding all hptq_changes 
             for tick, max_hq, max_tq in hptq_changes:
 
                 previous_tick = max(t for t in adapted_schedule if t <= tick)
@@ -142,16 +158,15 @@ class SystemController():
 
                 new_config = copy.deepcopy(base_config)
 
-                if new_config.max_hqueue_wait == max_hq and new_config.max_tqueue_wait == max_tq:
+                if new_config.max_hqueue_size == max_hq and new_config.max_tqueue_size == max_tq:
                     raise KeyError("Queue limits already set to this.")
 
-                new_config.max_hqueue_wait = max_hq
-                new_config.max_tqueue_wait = max_tq
+                new_config.max_hqueue_size = max_hq
+                new_config.max_tqueue_size = max_tq
 
                 adapted_schedule[tick] = new_config
 
                 print(f"Queue limits changed at tick {tick}")
-        # print(adapted_schedule)  UNCOMMENT THIS IF YOU WANT TO SEE THE RUNWAY CHANGE CONFIG MAP THAT IS SENT TO SIMULATION CLASS 
         
         newSim = Simulation(f"{maj}.{newest_minor}", adapted_schedule, inbound, outbound)
         self.sim_majors[maj][newest_minor] = newSim
@@ -163,6 +178,10 @@ class SystemController():
         pass
 
     def duplicate_simulation(self, major: int, minor: int):
+        """Function for tracking status, so duplicates"""
+        """
+        Sometimes the user creates a new tab for a new simulation but have no changes, but ready to anticipate config changes. 
+        """
         if not self.sim_majors:
             raise IndexError("No Major Sims have been generated yet. Therefore cannot create a copy.")
         
@@ -177,9 +196,7 @@ class SystemController():
         newSim = Simulation("f{major}.{newest_minor}", target_sim_user_config, inbound, outbound)
         self.sim_majors[major][newest_minor] = newSim
         self.current_focus = (major, newest_minor)
-
-        # Essentially, we don't need to waste time rerunning the sim we've already ran, and also, when you make a sim copy, you're basically about to make changes to it.
-        # Does not return anything, just the front end letting the backend know that there's a sim tab. 
+        
         return True
 
     
